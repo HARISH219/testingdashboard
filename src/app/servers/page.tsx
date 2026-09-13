@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Search, Plus, LogOut, ServerCrash, Loader2, Check } from "lucide-react";
+import { Search, Plus, LogOut, ServerCrash, Check, Stethoscope, Info, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Snowfall } from "@/components/snowfall";
 import { GuildIcon } from "@/components/guild-icon";
@@ -64,9 +64,14 @@ export default function ServersPage() {
       <header className="relative z-20 border-b border-white/[0.06]">
         <div className="container flex h-16 items-center justify-between">
           <Logo />
-          <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
-            <LogOut className="size-4" /> Sign out
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/setup"><Stethoscope className="size-4" /> Setup</Link>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
+              <LogOut className="size-4" /> Sign out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -86,8 +91,8 @@ export default function ServersPage() {
           )}
         </motion.div>
 
-        <div className="mx-auto mb-8 max-w-md">
-          <div className="relative">
+        <div className="mx-auto mb-8 flex max-w-md gap-2">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search servers…"
@@ -96,6 +101,9 @@ export default function ServersPage() {
               className="pl-9"
             />
           </div>
+          <Button variant="secondary" onClick={() => location.reload()} title="Refresh server list">
+            <RefreshCw className="size-4" />
+          </Button>
         </div>
 
         {/* Loading */}
@@ -121,10 +129,30 @@ export default function ServersPage() {
           <Card className="mx-auto max-w-md p-8 text-center">
             <ServerCrash className="mx-auto mb-4 size-10 text-destructive" />
             <h3 className="font-semibold text-snow">Couldn&apos;t load your servers</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-            <Button className="mt-5" onClick={() => location.reload()}>
-              Try again
-            </Button>
+            <p className="mt-1 break-words text-sm text-muted-foreground">{error}</p>
+            <div className="mt-5 flex justify-center gap-2">
+              <Button onClick={() => location.reload()}>Try again</Button>
+              <Button asChild variant="secondary">
+                <Link href="/setup">Check setup</Link>
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Bot not in any of the user's servers — the most common first-run snag */}
+        {filtered && filtered.length > 0 && filtered.every((g) => !g.botInstalled) && (
+          <Card className="mx-auto mb-6 max-w-2xl border-arctic/20 bg-arctic/[0.03] p-4">
+            <div className="flex items-start gap-3">
+              <Info className="mt-0.5 size-5 shrink-0 text-arctic" />
+              <div>
+                <p className="text-sm font-medium text-snow">Add Snowy to a server to begin</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  You manage {filtered.length} server{filtered.length > 1 ? "s" : ""}, but Snowy
+                  isn&apos;t in {filtered.length > 1 ? "any of them" : "it"} yet. Use{" "}
+                  <span className="text-frost">Invite Snowy</span> below, then refresh this page.
+                </p>
+              </div>
+            </div>
           </Card>
         )}
 

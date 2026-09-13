@@ -79,9 +79,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-muted-foreground hover:text-snow">
+        <div className="mt-6 flex items-center justify-center gap-4 text-sm">
+          <Link href="/" className="text-muted-foreground hover:text-snow">
             ← Back to home
+          </Link>
+          <span className="text-muted-foreground/40">·</span>
+          <Link href="/setup" className="text-muted-foreground hover:text-snow">
+            Setup status
           </Link>
         </div>
       </motion.div>

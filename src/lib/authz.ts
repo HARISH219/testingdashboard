@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { DEMO_MODE, HAS_DATABASE, isPlatformAdmin } from "./env";
-import { getManageableGuilds } from "./discord";
+import { getManageableGuilds, getBotGuildIds } from "./discord";
 import { DEMO_GUILDS } from "./demo";
 import { prisma } from "./db";
 import { hasPermission, type PermissionAction } from "./permissions";
@@ -57,16 +57,25 @@ export async function getManageableGuildsForUser(
 
   const guilds = await getManageableGuilds(user.accessToken);
 
-  // Merge with DB knowledge of bot installation / member counts.
-  let installed: Record<string, { botInstalled: boolean; memberCount: number }> = {};
+  // Ask Discord which guilds the bot is actually in. This is the source of
+  // truth and works with or without a database.
+  const botGuildIds = await getBotGuildIds();
+
+  // Optional DB enrichment (cached member counts). Never required.
+  let stored: Record<string, { botInstalled: boolean; memberCount: number }> = {};
   if (HAS_DATABASE) {
-    const rows = await prisma.guild.findMany({
-      where: { id: { in: guilds.map((g) => g.id) } },
-      select: { id: true, botInstalled: true, memberCount: true },
-    });
-    installed = Object.fromEntries(
-      rows.map((r) => [r.id, { botInstalled: r.botInstalled, memberCount: r.memberCount }])
-    );
+    try {
+      const rows = await prisma.guild.findMany({
+        where: { id: { in: guilds.map((g) => g.id) } },
+        select: { id: true, botInstalled: true, memberCount: true },
+      });
+      stored = Object.fromEntries(
+        rows.map((r) => [r.id, { botInstalled: r.botInstalled, memberCount: r.memberCount }])
+      );
+    } catch {
+      // DB unreachable — degrade gracefully instead of failing the page.
+      stored = {};
+    }
   }
 
   return guilds.map((g) => ({
@@ -75,8 +84,10 @@ export async function getManageableGuildsForUser(
     icon: g.icon,
     owner: g.owner,
     permissions: g.permissions,
-    botInstalled: installed[g.id]?.botInstalled ?? false,
-    memberCount: installed[g.id]?.memberCount ?? g.approximate_member_count ?? 0,
+    // Live Discord check first, then DB, so this is correct with no database.
+    botInstalled: botGuildIds.has(g.id) || (stored[g.id]?.botInstalled ?? false),
+    memberCount:
+      g.approximate_member_count ?? stored[g.id]?.memberCount ?? 0,
   }));
 }
 

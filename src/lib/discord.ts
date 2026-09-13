@@ -47,9 +47,48 @@ async function discordFetch<T>(
   return res.json() as Promise<T>;
 }
 
-/** Guilds the OAuth user is a member of (with permissions). */
+/** Guilds the OAuth user is a member of (with permissions and member counts). */
 export async function getUserGuilds(accessToken: string): Promise<DiscordGuild[]> {
-  return discordFetch<DiscordGuild[]>("/users/@me/guilds", { token: accessToken });
+  return discordFetch<DiscordGuild[]>("/users/@me/guilds?with_counts=true", {
+    token: accessToken,
+  });
+}
+
+/**
+ * IDs of every guild the bot is currently in — a single API call, cached
+ * briefly so the server selector stays fast and we don't hit rate limits.
+ * This is what makes the "bot installed" badge work without a database.
+ */
+let botGuildCache: { ids: Set<string>; at: number } | null = null;
+const BOT_GUILD_TTL_MS = 30_000;
+
+export async function getBotGuildIds(): Promise<Set<string>> {
+  if (!env.DISCORD_BOT_TOKEN) return new Set();
+  if (botGuildCache && Date.now() - botGuildCache.at < BOT_GUILD_TTL_MS) {
+    return botGuildCache.ids;
+  }
+  try {
+    // Discord returns at most 200 guilds per page, so paginate with `after`.
+    const ids = new Set<string>();
+    let after: string | undefined;
+    for (let page = 0; page < 50; page++) {
+      const qs = new URLSearchParams({ limit: "200" });
+      if (after) qs.set("after", after);
+      const batch = await discordFetch<{ id: string }[]>(
+        `/users/@me/guilds?${qs.toString()}`,
+        { bot: true }
+      );
+      for (const g of batch) ids.add(g.id);
+      if (batch.length < 200) break;
+      after = batch[batch.length - 1]?.id;
+      if (!after) break;
+    }
+    botGuildCache = { ids, at: Date.now() };
+    return ids;
+  } catch {
+    // Bot token missing/invalid — fall back to "unknown" rather than breaking.
+    return botGuildCache?.ids ?? new Set();
+  }
 }
 
 /** Guilds the user can manage (ADMIN or MANAGE_GUILD). Validated server-side. */
