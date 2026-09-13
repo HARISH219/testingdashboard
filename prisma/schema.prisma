@@ -1,0 +1,261 @@
+// Snowy — Discord bot dashboard
+// Prisma schema. PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth / Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(cuid())
+  discordId     String   @unique
+  username      String
+  globalName    String?
+  avatar        String?
+  email         String?
+  isAdmin       Boolean  @default(false) // Snowy platform administrator
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  subscriptions Subscription[]
+  auditLogs     AuditLog[]
+  dashboardRoleMemberships DashboardRoleMember[]
+
+  stripeCustomerId String? @unique
+}
+
+// ---------------------------------------------------------------------------
+// Guilds & configuration
+// ---------------------------------------------------------------------------
+
+model Guild {
+  id          String   @id // Discord guild id
+  name        String
+  icon        String?
+  ownerId     String? // Discord user id of the guild owner
+  botInstalled Boolean @default(false)
+  memberCount Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  config         GuildConfig?
+  moduleConfigs  ModuleConfig[]
+  subscription   Subscription?
+  dashboardRoles DashboardRole[]
+  auditLogs      AuditLog[]
+  giveaways      Giveaway[]
+  tickets        Ticket[]
+  modActions     ModAction[]
+}
+
+// General per-guild settings
+model GuildConfig {
+  id             String   @id @default(cuid())
+  guildId        String   @unique
+  guild          Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  prefix         String   @default("!")
+  timezone       String   @default("UTC")
+  retentionDays  Int      @default(30) // config retention after downgrade
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Per-module JSON configuration (welcome, automod, antinuke, logging, etc.)
+model ModuleConfig {
+  id        String   @id @default(cuid())
+  guildId   String
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  module    String // module key e.g. "welcome", "automod"
+  enabled   Boolean  @default(false)
+  data      Json     @default("{}")
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([guildId, module])
+  @@index([guildId])
+}
+
+// ---------------------------------------------------------------------------
+// Subscriptions / billing
+// ---------------------------------------------------------------------------
+
+enum PlanTier {
+  FREE
+  PREMIUM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guildId              String?            @unique
+  guild                Guild?             @relation(fields: [guildId], references: [id], onDelete: SetNull)
+  tier                 PlanTier           @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([userId])
+}
+
+// Admin-configurable plan pricing (overrides built-in defaults)
+model PlanConfig {
+  id           String   @id @default(cuid())
+  tier         PlanTier @unique
+  name         String
+  priceMonthly Float
+  priceYearly  Float
+  stripePriceMonthlyId String?
+  stripePriceYearlyId  String?
+  active       Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Distributed roles / permissions
+// ---------------------------------------------------------------------------
+
+model DashboardRole {
+  id          String   @id @default(cuid())
+  guildId     String
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  name        String
+  color       String   @default("#9EDCFF")
+  permissions String[] // e.g. ["moderation:manage", "giveaways:view"]
+  discordRoleIds String[] // Discord role ids granted this dashboard role
+  priority    Int      @default(0) // hierarchy; higher = more senior
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members DashboardRoleMember[]
+
+  @@index([guildId])
+}
+
+model DashboardRoleMember {
+  id       String        @id @default(cuid())
+  roleId   String
+  role     DashboardRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, userId])
+}
+
+// ---------------------------------------------------------------------------
+// Feature data (real records the bot / dashboard operate on)
+// ---------------------------------------------------------------------------
+
+model Giveaway {
+  id          String   @id @default(cuid())
+  guildId     String
+  guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId   String?
+  messageId   String?
+  prize       String
+  winners     Int      @default(1)
+  requiredRoleId String?
+  winnerRoleId   String?
+  endsAt      DateTime
+  ended       Boolean  @default(false)
+  wonBy       String[]
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  @@index([guildId])
+}
+
+enum TicketStatus {
+  OPEN
+  CLAIMED
+  CLOSED
+}
+
+model Ticket {
+  id         String       @id @default(cuid())
+  guildId    String
+  guild      Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  channelId  String?
+  openerId   String
+  claimedBy  String?
+  status     TicketStatus @default(OPEN)
+  subject    String?
+  createdAt  DateTime     @default(now())
+  closedAt   DateTime?
+
+  @@index([guildId])
+}
+
+model ModAction {
+  id        String   @id @default(cuid())
+  guildId   String
+  guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  type      String // warn, ban, kick, mute, tempban, etc.
+  targetId  String
+  targetTag String?
+  moderatorId String
+  reason    String?
+  duration  Int? // seconds
+  createdAt DateTime @default(now())
+
+  @@index([guildId])
+}
+
+// ---------------------------------------------------------------------------
+// Audit log
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  guildId   String?
+  guild     Guild?   @relation(fields: [guildId], references: [id], onDelete: SetNull)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  detail    Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([guildId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Platform / admin
+// ---------------------------------------------------------------------------
+
+model FeatureFlag {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  enabled   Boolean  @default(false)
+  description String?
+  updatedAt DateTime @updatedAt
+}
+
+model PlatformSetting {
+  id              String  @id @default(cuid())
+  maintenanceMode Boolean @default(false)
+  announcement    String?
+  updatedAt       DateTime @updatedAt
+}

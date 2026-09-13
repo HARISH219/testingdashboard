@@ -1,0 +1,68 @@
+"use client";
+
+import * as React from "react";
+import { MessagesSquare, Plus, Trash2 } from "lucide-react";
+import { ModuleGate } from "@/components/dashboard/module-gate";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { SaveBar } from "@/components/dashboard/save-bar";
+import { useModuleConfig } from "@/components/dashboard/use-module-config";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Input, Label } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Responder { trigger: string; response: string; matchType: string }
+interface ARConfig extends Record<string, unknown> { responders: Responder[] }
+const defaults: ARConfig = { responders: [] };
+
+function Inner() {
+  const cfg = useModuleConfig<ARConfig>("autoresponder", defaults);
+  const [trigger, setTrigger] = React.useState("");
+  const [response, setResponse] = React.useState("");
+  if (cfg.loading) return <Skeleton className="h-96 w-full rounded-2xl" />;
+
+  const add = () => {
+    if (!trigger || !response) return;
+    cfg.setField("responders", [...cfg.data.responders, { trigger, response, matchType: "contains" }]);
+    setTrigger(""); setResponse("");
+  };
+
+  return (
+    <div>
+      <PageHeader title="Autoresponder" icon={<MessagesSquare className="size-5" />}
+        description="Automatically reply when a message matches a trigger."
+        actions={<div className="flex items-center gap-2"><span className="text-sm text-frost">Enabled</span><Switch checked={cfg.enabled} onCheckedChange={cfg.setEnabled} /></div>}
+      />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle>New responder</CardTitle><CardDescription>When someone says the trigger, Snowy replies.</CardDescription></CardHeader>
+          <CardContent className="space-y-4">
+            <div><Label>Trigger</Label><Input className="mt-2" placeholder="hello" value={trigger} onChange={(e) => setTrigger(e.target.value)} /></div>
+            <div><Label>Response</Label><Input className="mt-2" placeholder="Hi there! ❄️" value={response} onChange={(e) => setResponse(e.target.value)} /></div>
+            <Button onClick={add}><Plus className="size-4" /> Add responder</Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>Responders</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {cfg.data.responders.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No responders yet.</p>}
+            {cfg.data.responders.map((r, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm text-snow"><span className="text-arctic">{r.trigger}</span> → {r.response}</p>
+                </div>
+                <button onClick={() => cfg.setField("responders", cfg.data.responders.filter((_, idx) => idx !== i))} className="text-muted-foreground hover:text-destructive" aria-label="Delete"><Trash2 className="size-4" /></button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+      <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
+    </div>
+  );
+}
+
+export default function Page() {
+  return <ModuleGate moduleKey="autoresponder"><Inner /></ModuleGate>;
+}
