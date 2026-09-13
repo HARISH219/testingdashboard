@@ -9,6 +9,18 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.svg" },
 };
 
+/**
+ * Render every route on demand instead of prerendering at build time.
+ *
+ * Snowy is an authenticated dashboard: almost every page depends on the
+ * session, the Discord API, or the database, so static prerendering buys
+ * essentially nothing here. Disabling it removes the build-time export pass,
+ * which is a class of deploy failure we simply do not need to risk.
+ * Pages still render fast — they are server-rendered per request and cached
+ * at the edge by the host.
+ */
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
