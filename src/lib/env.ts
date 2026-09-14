@@ -19,11 +19,39 @@ function pick(...names: string[]): string | undefined {
   return undefined;
 }
 
+/**
+ * Public origin of this deployment.
+ * Explicit NEXTAUTH_URL wins. Otherwise fall back to the host Vercel injects,
+ * so a deployment never silently reports "http://localhost:3000" and build
+ * OAuth callbacks against the wrong origin.
+ */
+function resolveAppUrl(): string {
+  const explicit = pick("NEXTAUTH_URL", "NEXT_PUBLIC_BASE_URL");
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  // Stable production domain, then the per-deployment URL.
+  const vercelHost = pick("VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_URL");
+  if (vercelHost) {
+    const host = vercelHost.replace(/^https?:\/\//, "").replace(/\/+$/, "");
+    return `https://${host}`;
+  }
+  return "http://localhost:3000";
+}
+
+const APP_URL = resolveAppUrl();
+
+/**
+ * NextAuth v4 reads process.env.NEXTAUTH_URL directly when constructing OAuth
+ * callback URLs. Populate it from the resolved origin so hosts that only
+ * provide VERCEL_URL still generate correct callbacks.
+ */
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = APP_URL;
+}
+
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
-  NEXTAUTH_URL:
-    pick("NEXTAUTH_URL", "NEXT_PUBLIC_BASE_URL")?.replace(/\/+$/, "") ??
-    "http://localhost:3000",
+  NEXTAUTH_URL: APP_URL,
   NEXTAUTH_SECRET: pick("NEXTAUTH_SECRET", "AUTH_SECRET"),
 
   DISCORD_CLIENT_ID: pick("DISCORD_CLIENT_ID", "DISCORD_APP_ID", "CLIENT_ID"),
