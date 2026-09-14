@@ -16,14 +16,61 @@ export default function LoginPage() {
   const params = useSearchParams();
   const { status } = useSession();
   const [loading, setLoading] = React.useState(false);
+  const [problem, setProblem] = React.useState<string | null>(null);
+  const [discordReady, setDiscordReady] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     if (status === "authenticated") router.replace("/servers");
   }, [status, router]);
 
+  // Confirm the Discord provider actually exists on this deployment. If the
+  // server is missing NEXTAUTH_SECRET / Discord credentials it falls back to
+  // demo mode, where "discord" is not a registered provider and signIn() would
+  // do nothing at all. Surfacing that here beats a button that silently fails.
+  React.useEffect(() => {
+    fetch("/api/auth/providers")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((providers) => {
+        const ok = Boolean(providers && providers.discord);
+        setDiscordReady(ok);
+        if (!ok) {
+          setProblem(
+            "Discord sign-in isn't configured on this deployment. The server is missing NEXTAUTH_SECRET or the Discord credentials."
+          );
+        }
+      })
+      .catch(() =>
+        setProblem("Couldn't reach the authentication server. Is it running?")
+      );
+  }, []);
+
   const handleLogin = async () => {
     setLoading(true);
-    await signIn("discord", { callbackUrl: "/servers" });
+    setProblem(null);
+    try {
+      // redirect:false so a failure surfaces here instead of vanishing.
+      const res = await signIn("discord", {
+        callbackUrl: "/servers",
+        redirect: false,
+      });
+      if (!res) {
+        setProblem("Sign-in didn't start. The Discord provider may not be configured.");
+        return;
+      }
+      if (res.error) {
+        setProblem(`Discord rejected the sign-in: ${res.error}`);
+        return;
+      }
+      if (res.url) {
+        window.location.href = res.url;
+        return;
+      }
+      setProblem("Sign-in returned no redirect URL.");
+    } catch (e) {
+      setProblem((e as Error).message || "Unexpected error starting sign-in.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,13 +95,23 @@ export default function LoginPage() {
 
           {params.get("error") && (
             <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              Sign in failed. Please try again.
+              Sign in failed: {params.get("error")}
+            </div>
+          )}
+
+          {problem && (
+            <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-left text-sm text-warning">
+              <p className="font-medium">Can&apos;t sign in</p>
+              <p className="mt-1 text-warning/90">{problem}</p>
+              <Link href="/setup" className="mt-2 inline-block underline">
+                Open setup status
+              </Link>
             </div>
           )}
 
           <Button
             onClick={handleLogin}
-            disabled={loading}
+            disabled={loading || discordReady === false}
             variant="discord"
             size="lg"
             className="mt-6 w-full"
