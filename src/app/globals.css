@@ -1,3 +1,12 @@
+/*
+ * Inter is fetched at runtime by the browser rather than at build time by
+ * next/font/google. This keeps the production build free of any network
+ * dependency (a slow font CDN must never fail a deploy) and avoids needing a
+ * manual <head> in the root layout. If this request fails the UI still renders
+ * correctly via the system-font fallback stack defined in --font-sans below.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
