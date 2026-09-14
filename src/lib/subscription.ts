@@ -14,7 +14,9 @@ export async function getGuildTier(guildId: string): Promise<PlanTier> {
   const sub = await prisma.subscription.findUnique({ where: { guildId } });
   if (!sub) return "FREE";
   const active = sub.status === "ACTIVE" || sub.status === "TRIALING";
-  return active ? (sub.tier as PlanTier) : "FREE";
+  if (!active) return "FREE";
+  // tier is a plain string column on SQLite, so validate before trusting it.
+  return sub.tier in PLANS ? (sub.tier as PlanTier) : "FREE";
 }
 
 export async function getGuildLimits(guildId: string): Promise<PlanFeatureLimits> {

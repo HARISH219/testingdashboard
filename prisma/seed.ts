@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 async function main() {
   // Seed plan configs (admin-overridable pricing).
   const plans = [
-    { tier: "FREE" as const, name: "Free", priceMonthly: 0, priceYearly: 0 },
-    { tier: "PREMIUM" as const, name: "Premium", priceMonthly: 7.99, priceYearly: 79.99 },
-    { tier: "ENTERPRISE" as const, name: "Enterprise", priceMonthly: 29.99, priceYearly: 299.99 },
+    { tier: "FREE", name: "Free", priceMonthly: 0, priceYearly: 0 },
+    { tier: "PREMIUM", name: "Premium", priceMonthly: 7.99, priceYearly: 79.99 },
+    { tier: "ENTERPRISE", name: "Enterprise", priceMonthly: 29.99, priceYearly: 299.99 },
   ];
   for (const p of plans) {
     await prisma.planConfig.upsert({

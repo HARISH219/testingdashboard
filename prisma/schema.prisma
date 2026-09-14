@@ -1,12 +1,22 @@
 // Snowy — Discord bot dashboard
-// Prisma schema. PostgreSQL.
+// Prisma schema targeting libSQL / Turso (SQLite-compatible).
+//
+// NOTE ON TYPES: SQLite (and therefore Turso) does not support Postgres
+// `enum` types, `String[]` scalar arrays, or native `Json` columns. Where the
+// Postgres schema used those, this schema stores:
+//   - enums          -> String, with the allowed values documented inline
+//   - String[]       -> String holding a JSON array, e.g. '["a","b"]'
+//   - Json           -> String holding a JSON object, e.g. '{"k":1}'
+// src/lib/json-fields.ts centralises the encode/decode helpers so callers
+// never touch the raw strings.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -68,14 +78,14 @@ model GuildConfig {
   updatedAt      DateTime @updatedAt
 }
 
-// Per-module JSON configuration (welcome, automod, antinuke, logging, etc.)
+// Per-module configuration (welcome, automod, antinuke, logging, etc.)
 model ModuleConfig {
   id        String   @id @default(cuid())
   guildId   String
   guild     Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   module    String // module key e.g. "welcome", "automod"
   enabled   Boolean  @default(false)
-  data      Json     @default("{}")
+  data      String   @default("{}") // JSON object
   updatedBy String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -88,42 +98,32 @@ model ModuleConfig {
 // Subscriptions / billing
 // ---------------------------------------------------------------------------
 
-enum PlanTier {
-  FREE
-  PREMIUM
-  ENTERPRISE
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  TRIALING
-  PAST_DUE
-  CANCELED
-  EXPIRED
-}
-
 model Subscription {
-  id                   String             @id @default(cuid())
+  id                   String    @id @default(cuid())
   userId               String
-  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  guildId              String?            @unique
-  guild                Guild?             @relation(fields: [guildId], references: [id], onDelete: SetNull)
-  tier                 PlanTier           @default(FREE)
-  status               SubscriptionStatus @default(ACTIVE)
-  stripeSubscriptionId String?            @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guildId              String?   @unique
+  guild                Guild?    @relation(fields: [guildId], references: [id], onDelete: SetNull)
+  /// FREE | PREMIUM | ENTERPRISE
+  tier                 String    @default("FREE")
+  /// ACTIVE | TRIALING | PAST_DUE | CANCELED | EXPIRED
+  status               String    @default("ACTIVE")
+  stripeSubscriptionId String?   @unique
   stripePriceId        String?
   currentPeriodEnd     DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@index([userId])
+  @@index([tier, status])
 }
 
 // Admin-configurable plan pricing (overrides built-in defaults)
 model PlanConfig {
   id           String   @id @default(cuid())
-  tier         PlanTier @unique
+  /// FREE | PREMIUM | ENTERPRISE
+  tier         String   @unique
   name         String
   priceMonthly Float
   priceYearly  Float
@@ -143,8 +143,10 @@ model DashboardRole {
   guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   name        String
   color       String   @default("#9EDCFF")
-  permissions String[] // e.g. ["moderation:manage", "giveaways:view"]
-  discordRoleIds String[] // Discord role ids granted this dashboard role
+  /// JSON array, e.g. ["moderation:manage","giveaways:view"]
+  permissions String   @default("[]")
+  /// JSON array of Discord role ids granted this dashboard role
+  discordRoleIds String @default("[]")
   priority    Int      @default(0) // hierarchy; higher = more senior
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -180,29 +182,25 @@ model Giveaway {
   winnerRoleId   String?
   endsAt      DateTime
   ended       Boolean  @default(false)
-  wonBy       String[]
+  /// JSON array of winning user ids
+  wonBy       String   @default("[]")
   createdBy   String?
   createdAt   DateTime @default(now())
 
   @@index([guildId])
 }
 
-enum TicketStatus {
-  OPEN
-  CLAIMED
-  CLOSED
-}
-
 model Ticket {
-  id         String       @id @default(cuid())
+  id         String    @id @default(cuid())
   guildId    String
-  guild      Guild        @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guild      Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
   channelId  String?
   openerId   String
   claimedBy  String?
-  status     TicketStatus @default(OPEN)
+  /// OPEN | CLAIMED | CLOSED
+  status     String    @default("OPEN")
   subject    String?
-  createdAt  DateTime     @default(now())
+  createdAt  DateTime  @default(now())
   closedAt   DateTime?
 
   @@index([guildId])
@@ -234,7 +232,7 @@ model AuditLog {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   action    String
-  detail    Json     @default("{}")
+  detail    String   @default("{}") // JSON object
   createdAt DateTime @default(now())
 
   @@index([guildId])

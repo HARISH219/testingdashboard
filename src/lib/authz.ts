@@ -6,6 +6,7 @@ import { DEMO_GUILDS } from "./demo";
 import { prisma } from "./db";
 import { hasPermission, type PermissionAction } from "./permissions";
 import { canManageGuild } from "./utils";
+import { decodeList } from "./json-fields";
 
 export interface SessionUser {
   discordId: string;
@@ -131,7 +132,7 @@ export async function getGuildPermissions(
     },
     select: { permissions: true },
   });
-  return Array.from(new Set(roles.flatMap((r) => r.permissions)));
+  return Array.from(new Set(roles.flatMap((r) => decodeList(r.permissions))));
 }
 
 /** Assert a permission or throw a typed error for API routes. */

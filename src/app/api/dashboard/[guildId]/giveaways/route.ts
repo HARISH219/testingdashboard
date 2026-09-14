@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/authz";
 import { prisma } from "@/lib/db";
 import { HAS_DATABASE } from "@/lib/env";
 import { botApi } from "@/lib/bot-api";
+import { decodeList } from "@/lib/json-fields";
 
 // In-memory demo store
 const memGiveaways = new Map<string, any[]>();
@@ -21,7 +22,9 @@ export async function GET(_req: NextRequest, { params }: { params: { guildId: st
   try {
     await requirePermission(params.guildId, "giveaways", "view");
     if (!HAS_DATABASE) return NextResponse.json({ giveaways: memGiveaways.get(params.guildId) ?? [], demo: true });
-    const giveaways = await prisma.giveaway.findMany({ where: { guildId: params.guildId }, orderBy: { createdAt: "desc" } });
+    const rows = await prisma.giveaway.findMany({ where: { guildId: params.guildId }, orderBy: { createdAt: "desc" } });
+    // wonBy is a JSON-array column on SQLite; decode for the client.
+    const giveaways = rows.map((g) => ({ ...g, wonBy: decodeList(g.wonBy) }));
     return NextResponse.json({ giveaways });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: (e as any).status ?? 500 });
@@ -38,7 +41,10 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
 
     let giveaway: any;
     if (HAS_DATABASE) {
-      giveaway = await prisma.giveaway.create({ data: { guildId: params.guildId, endsAt, createdBy: user.discordId, ...rest } });
+      const created = await prisma.giveaway.create({
+        data: { guildId: params.guildId, endsAt, createdBy: user.discordId, ...rest },
+      });
+      giveaway = { ...created, wonBy: decodeList(created.wonBy) };
     } else {
       giveaway = { id: Math.random().toString(36).slice(2), guildId: params.guildId, endsAt, ended: false, wonBy: [], ...rest };
       const arr = memGiveaways.get(params.guildId) ?? [];

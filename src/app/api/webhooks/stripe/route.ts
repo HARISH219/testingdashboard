@@ -3,7 +3,6 @@ import { stripe, HAS_STRIPE } from "@/lib/stripe";
 import { env, HAS_DATABASE } from "@/lib/env";
 import { prisma } from "@/lib/db";
 import type Stripe from "stripe";
-import type { PlanTier } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -46,10 +45,10 @@ export async function POST(req: NextRequest) {
           await prisma.subscription.upsert({
             where: { guildId },
             create: {
-              guildId, userId: user.id, tier: tier as PlanTier, status: "ACTIVE",
+              guildId, userId: user.id, tier, status: "ACTIVE",
               stripeSubscriptionId: session.subscription as string,
             },
-            update: { tier: tier as PlanTier, status: "ACTIVE", stripeSubscriptionId: session.subscription as string },
+            update: { tier, status: "ACTIVE", stripeSubscriptionId: session.subscription as string },
           });
         }
         break;
@@ -57,7 +56,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
-        const statusMap: Record<string, any> = {
+        const statusMap: Record<string, string> = {
           active: "ACTIVE", trialing: "TRIALING", past_due: "PAST_DUE",
           canceled: "CANCELED", unpaid: "EXPIRED", incomplete_expired: "EXPIRED",
         };

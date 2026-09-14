@@ -1,0 +1,15 @@
+a31e3ca Load webfont from CSS instead of a manual head element (fixes broken hydration)
+ M package-lock.json
+ M package.json
+ M prisma/schema.prisma
+ M prisma/seed.ts
+ M src/app/api/dashboard/[guildId]/giveaways/route.ts
+ M src/app/api/dashboard/[guildId]/roles/route.ts
+ M src/app/api/webhooks/stripe/route.ts
+ M src/lib/authz.ts
+ M src/lib/config-service.ts
+ M src/lib/db.ts
+ M src/lib/subscription.ts
+?? gs2.txt
+?? src/lib/json-fields.ts
+a31e3ca6e7010fe48de71ee58c21f8de4bd8d74b	refs/heads/main

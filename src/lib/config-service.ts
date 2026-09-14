@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
 import { HAS_DATABASE } from "./env";
 import { prisma } from "./db";
 import { botApi } from "./bot-api";
+import { decodeJson, encodeJson } from "./json-fields";
 
 /**
  * Module configuration service.
@@ -33,7 +33,7 @@ export async function getModuleConfig(
     });
     return {
       enabled: row?.enabled ?? false,
-      data: { ...defaults, ...((row?.data as Record<string, unknown>) ?? {}) },
+      data: { ...defaults, ...decodeJson(row?.data) },
       source: "db",
     };
   }
@@ -59,8 +59,8 @@ export async function setModuleConfig(
       where: { guildId_module: { guildId, module } },
     });
     enabled = update.enabled ?? existing?.enabled ?? false;
-    data = { ...((existing?.data as Record<string, unknown>) ?? {}), ...(update.data ?? {}) };
-    const jsonData = data as Prisma.InputJsonValue;
+    data = { ...decodeJson(existing?.data), ...(update.data ?? {}) };
+    const jsonData = encodeJson(data);
     await prisma.moduleConfig.upsert({
       where: { guildId_module: { guildId, module } },
       create: { guildId, module, enabled, data: jsonData, updatedBy },

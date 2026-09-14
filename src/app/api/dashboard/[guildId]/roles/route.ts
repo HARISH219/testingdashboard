@@ -4,6 +4,7 @@ import { authorizeGuild, getGuildPermissions } from "@/lib/authz";
 import { prisma } from "@/lib/db";
 import { HAS_DATABASE } from "@/lib/env";
 import { ALL_PERMISSIONS } from "@/lib/permissions";
+import { decodeList, encodeList, encodeJson } from "@/lib/json-fields";
 
 // Demo store for dashboard roles
 const memRoles = new Map<string, any[]>();
@@ -34,7 +35,13 @@ export async function GET(_req: NextRequest, { params }: { params: { guildId: st
   if (!HAS_DATABASE) {
     return NextResponse.json({ roles: memRoles.get(params.guildId) ?? [], allPermissions: ALL_PERMISSIONS, demo: true });
   }
-  const roles = await prisma.dashboardRole.findMany({ where: { guildId: params.guildId }, orderBy: { priority: "desc" } });
+  const rows = await prisma.dashboardRole.findMany({ where: { guildId: params.guildId }, orderBy: { priority: "desc" } });
+  // Decode the JSON-array columns so the client receives real arrays.
+  const roles = rows.map((r) => ({
+    ...r,
+    permissions: decodeList(r.permissions),
+    discordRoleIds: decodeList(r.discordRoleIds),
+  }));
   return NextResponse.json({ roles, allPermissions: ALL_PERMISSIONS });
 }
 
@@ -56,10 +63,24 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     return NextResponse.json({ ok: true, role });
   }
 
-  const role = await prisma.dashboardRole.create({
-    data: { guildId: params.guildId, ...parsed.data, permissions },
+  const created = await prisma.dashboardRole.create({
+    data: {
+      guildId: params.guildId,
+      name: parsed.data.name,
+      color: parsed.data.color,
+      priority: parsed.data.priority,
+      permissions: encodeList(permissions),
+      discordRoleIds: encodeList(parsed.data.discordRoleIds),
+    },
   });
-  await prisma.auditLog.create({ data: { guildId: params.guildId, action: "role.create", detail: { name: role.name } } });
+  await prisma.auditLog.create({
+    data: {
+      guildId: params.guildId,
+      action: "role.create",
+      detail: encodeJson({ name: created.name }),
+    },
+  });
+  const role = { ...created, permissions, discordRoleIds: parsed.data.discordRoleIds };
   return NextResponse.json({ ok: true, role });
 }
 
