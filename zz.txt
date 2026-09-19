@@ -1,0 +1,5 @@
+d593082 Auto-detect deployment URL on Vercel; surface sign-in failures on the login page
+c5a3235 Surface sign-in failures instead of a silently inert login button
+ M src/lib/db.ts
+?? glog.txt
+?? zz.txt
