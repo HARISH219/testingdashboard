@@ -38,6 +38,11 @@ yarn-error.log*
 # prisma
 /prisma/*.db
 
+# paste-ready secrets for hosting dashboards — never commit
+VERCEL_ENV_PASTE.txt
+turso-result.txt
+tout.txt
+
 # local scratch / verification output
 g1.txt
 gitlog*.txt

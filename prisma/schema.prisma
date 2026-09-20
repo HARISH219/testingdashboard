@@ -17,7 +17,16 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // The Prisma CLI only accepts a `file:` URL for the sqlite provider — it does
+  // not understand `libsql://`. This placeholder exists purely so CLI commands
+  // (generate, migrate diff, validate) work.
+  //
+  // At runtime the connection comes from @prisma/adapter-libsql in src/lib/db.ts,
+  // which reads the real Turso URL + auth token from the environment, so this
+  // value is never used to talk to the database.
+  //
+  // To apply schema changes to Turso, run: npm run db:push:turso
+  url      = "file:./dev.db"
 }
 
 // ---------------------------------------------------------------------------
