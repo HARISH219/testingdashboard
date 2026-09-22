@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Snowflake, LayoutDashboard } from "lucide-react";
+import { ArrowRight, Sparkles, Snowflake, LayoutDashboard, BookOpenText } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Snowfall } from "@/components/snowfall";
 import { Button } from "@/components/ui/button";
@@ -11,36 +11,15 @@ import { FeatureGrid } from "@/components/marketing/feature-grid";
 import { PricingCards } from "@/components/marketing/pricing-cards";
 import { DashboardPreview } from "@/components/marketing/dashboard-preview";
 import { DiscordIcon } from "@/components/icons";
+import { MarketingHeader } from "@/components/marketing/marketing-header";
 
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Snowfall density={70} className="pointer-events-none fixed inset-0 z-0 h-full w-full" />
 
-      {/* Nav */}
-      <header className="relative z-20">
-        <div className="container flex h-20 items-center justify-between">
-          <Logo />
-          <nav className="hidden items-center gap-8 text-sm text-frost md:flex">
-            <a href="#features" className="hover:text-snow transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-snow transition-colors">Pricing</a>
-            <Link href="/servers" className="hover:text-snow transition-colors">Dashboard</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/servers">
-                <LayoutDashboard className="size-4" /> Dashboard
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" size="sm">
-              <Link href="/login">
-                <DiscordIcon className="size-4" />
-                <span className="hidden xs:inline">Login</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Shared navigation */}
+      <MarketingHeader />
 
       {/* Hero */}
       <section className="relative z-10">
@@ -93,7 +72,9 @@ export default function LandingPage() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
-              <a href="#features">Explore Features</a>
+              <Link href="/commands">
+                <BookOpenText className="size-5" /> Commands
+              </Link>
             </Button>
             <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
               <a href="#pricing">View Pricing</a>
