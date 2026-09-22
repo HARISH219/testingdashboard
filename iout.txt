@@ -1,6 +1,0 @@
-﻿DDL applied: 32/32
-Seeded PlanConfig: FREE, PREMIUM, ENTERPRISE
-
-Tables now present (14):
-  AuditLog, DashboardRole, DashboardRoleMember, FeatureFlag, Giveaway, Guild, GuildConfig, ModAction, ModuleConfig, PlanConfig, PlatformSetting, Subscription, Ticket, User
-PlanConfig rows: ENTERPRISE, FREE, PREMIUM

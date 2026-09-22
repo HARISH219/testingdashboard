@@ -41,7 +41,11 @@ yarn-error.log*
 # paste-ready secrets for hosting dashboards — never commit
 VERCEL_ENV_PASTE.txt
 turso-result.txt
+turso-init-result.txt
 tout.txt
+iout.txt
+pout.txt
+mout.txt
 
 # local scratch / verification output
 g1.txt
