@@ -68,20 +68,22 @@ export async function getBotGuildIds(): Promise<Set<string>> {
     return botGuildCache.ids;
   }
   try {
-    // Discord returns at most 200 guilds per page, so paginate with `after`.
+    // `/users/@me/guilds` paginates by ID: each page must be requested with
+    // `after=<highest id seen so far>`, and the results are ordered by id
+    // ascending. Sorting the batch before taking the cursor guarantees we
+    // advance correctly even if Discord returns a page unordered.
     const ids = new Set<string>();
-    let after: string | undefined;
-    for (let page = 0; page < 50; page++) {
-      const qs = new URLSearchParams({ limit: "200" });
-      if (after) qs.set("after", after);
+    let after = "0";
+    for (let page = 0; page < 100; page++) {
       const batch = await discordFetch<{ id: string }[]>(
-        `/users/@me/guilds?${qs.toString()}`,
+        `/users/@me/guilds?limit=200&after=${after}`,
         { bot: true }
       );
+      if (batch.length === 0) break;
       for (const g of batch) ids.add(g.id);
       if (batch.length < 200) break;
-      after = batch[batch.length - 1]?.id;
-      if (!after) break;
+      // Highest snowflake by numeric value becomes the next cursor.
+      after = batch.reduce((max, g) => (BigInt(g.id) > BigInt(max) ? g.id : max), after);
     }
     botGuildCache = { ids, at: Date.now() };
     return ids;
@@ -89,6 +91,39 @@ export async function getBotGuildIds(): Promise<Set<string>> {
     // Bot token missing/invalid — fall back to "unknown" rather than breaking.
     return botGuildCache?.ids ?? new Set();
   }
+}
+
+/**
+ * Definitive per-guild membership check. Used to resolve "bot installed" for
+ * the specific guilds a user manages, independent of the paginated global
+ * list. Each guild is checked once and cached; a 404 means the bot is not in
+ * that guild, anything else is treated as unknown (not installed).
+ */
+const guildMembershipCache = new Map<string, { present: boolean; at: number }>();
+
+export async function botIsInGuilds(guildIds: string[]): Promise<Set<string>> {
+  const present = new Set<string>();
+  if (!env.DISCORD_BOT_TOKEN) return present;
+
+  await Promise.all(
+    guildIds.map(async (id) => {
+      const cached = guildMembershipCache.get(id);
+      if (cached && Date.now() - cached.at < BOT_GUILD_TTL_MS) {
+        if (cached.present) present.add(id);
+        return;
+      }
+      try {
+        // Succeeds only if the bot is a member of the guild.
+        await discordFetch(`/guilds/${id}`, { bot: true });
+        guildMembershipCache.set(id, { present: true, at: Date.now() });
+        present.add(id);
+      } catch {
+        guildMembershipCache.set(id, { present: false, at: Date.now() });
+      }
+    })
+  );
+
+  return present;
 }
 
 /** Guilds the user can manage (ADMIN or MANAGE_GUILD). Validated server-side. */

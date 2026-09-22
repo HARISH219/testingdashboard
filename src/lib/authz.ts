@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { DEMO_MODE, HAS_DATABASE, isPlatformAdmin } from "./env";
-import { getManageableGuilds, getBotGuildIds } from "./discord";
+import { getManageableGuilds, botIsInGuilds } from "./discord";
 import { DEMO_GUILDS } from "./demo";
 import { prisma } from "./db";
 import { hasPermission, type PermissionAction } from "./permissions";
@@ -58,9 +58,10 @@ export async function getManageableGuildsForUser(
 
   const guilds = await getManageableGuilds(user.accessToken);
 
-  // Ask Discord which guilds the bot is actually in. This is the source of
-  // truth and works with or without a database.
-  const botGuildIds = await getBotGuildIds();
+  // Resolve "bot installed" definitively by checking each managed guild
+  // directly. This is reliable regardless of how large the bot's global guild
+  // list is, and avoids the pagination pitfalls of /users/@me/guilds.
+  const botGuildIds = await botIsInGuilds(guilds.map((g) => g.id));
 
   // Optional DB enrichment (cached member counts). Never required.
   let stored: Record<string, { botInstalled: boolean; memberCount: number }> = {};
