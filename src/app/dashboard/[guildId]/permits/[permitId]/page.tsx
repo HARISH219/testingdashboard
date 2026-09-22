@@ -23,7 +23,7 @@ import {
   PermitTabs, PermitMenu, StatusPill, PermitGlyph, type MenuAction,
 } from "@/components/dashboard/permits/permit-ui";
 import { PermissionPicker } from "@/components/dashboard/permits/permission-picker";
-import { usePermits } from "@/components/dashboard/permits/use-permits";
+import { usePermits, safeJson } from "@/components/dashboard/permits/use-permits";
 import {
   PERMIT_ICONS, allConflicts, catalogByCategory, type Permit, type PermState,
 } from "@/lib/permits";
@@ -89,7 +89,7 @@ function DetailInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: permit.id, ...draft, description: draft.description || null }),
       });
-      const d = await r.json();
+      const d = await safeJson(r);
       if (!r.ok) throw new Error(d.error ?? "Save failed");
       toast({ variant: "success", title: "Permit saved successfully" });
       reload();
@@ -105,7 +105,7 @@ function DetailInner() {
     setSaving(true);
     try {
       const r = await fetch(`/api/dashboard/${guild.id}/roles?id=${permit.id}`, { method: "DELETE" });
-      if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
+      if (!r.ok) throw new Error((await safeJson(r)).error ?? "Delete failed");
       toast({ variant: "success", title: "Permit deleted" });
       router.push(base);
     } catch (e) {
@@ -127,7 +127,7 @@ function DetailInner() {
           discordRoleIds: permit.discordRoleIds, permissions: permit.permissions,
         }),
       });
-      const d = await r.json();
+      const d = await safeJson(r);
       if (!r.ok) throw new Error(d.error ?? "Duplicate failed");
       toast({ variant: "success", title: "Permit duplicated" });
       router.push(`${base}/${d.permit.id}`);

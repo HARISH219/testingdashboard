@@ -17,6 +17,7 @@ import { PermissionPicker } from "./permission-picker";
 import {
   PERMIT_ICONS, categoriesOf, getPreset, type PermissionPreset,
 } from "@/lib/permits";
+import { safeJson } from "./use-permits";
 import { intToHexColor } from "@/lib/utils";
 
 const STEPS = ["Details", "Roles", "Permissions", "Review"];
@@ -93,8 +94,8 @@ export function CreatePermitWizard({
           permissions: form.permissions,
         }),
       });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error ?? "Failed to create permit");
+      const d = await safeJson(r);
+      if (!r.ok) throw new Error(d.error ?? `Request failed (${r.status})`);
       toast({ variant: "success", title: "Permit created", description: `${form.name} is ready.` });
       onCreated();
       onClose();

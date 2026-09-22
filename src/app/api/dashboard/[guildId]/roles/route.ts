@@ -72,6 +72,38 @@ async function writeAudit(
   }
 }
 
+/**
+ * Make sure the Guild row exists before inserting anything that references it.
+ * Best-effort: if this fails the caller's try/catch surfaces a clear error.
+ */
+async function ensureGuild(guildId: string, name: string, icon: string | null) {
+  await prisma.guild.upsert({
+    where: { id: guildId },
+    update: {},
+    create: { id: guildId, name, icon: icon ?? null },
+  });
+}
+
+/**
+ * Turn a thrown DB error into a JSON 500 with a helpful, actionable message.
+ * Without this the route would return an empty body and the client would fail
+ * with "Unexpected end of JSON input". The most common cause here is the Turso
+ * table missing the newer permit columns — point the user at the migration.
+ */
+function dbError(e: unknown, op: string) {
+  const message = e instanceof Error ? e.message : String(e);
+  const missingColumn = /no such column|has no column|no such table/i.test(message);
+  return NextResponse.json(
+    {
+      error: missingColumn
+        ? "The database is missing the latest permit columns. Run `npm run db:init:turso` to apply them."
+        : `Could not ${op} permit.`,
+      detail: message.slice(0, 300),
+    },
+    { status: 500 }
+  );
+}
+
 /* --------------------------------- GET ----------------------------------- */
 
 export async function GET(req: NextRequest, { params }: { params: { guildId: string } }) {
@@ -90,32 +122,36 @@ export async function GET(req: NextRequest, { params }: { params: { guildId: str
     });
   }
 
-  const rows = await prisma.dashboardRole.findMany({
-    where: { guildId: params.guildId },
-    orderBy: { priority: "desc" },
-  });
-  const permits = rows.map(shape);
+  try {
+    const rows = await prisma.dashboardRole.findMany({
+      where: { guildId: params.guildId },
+      orderBy: { priority: "desc" },
+    });
+    const permits = rows.map(shape);
 
-  let activity: any[] = [];
-  if (wantActivity) {
-    try {
-      const logs = await prisma.auditLog.findMany({
-        where: { guildId: params.guildId, action: { startsWith: "permit." } },
-        orderBy: { createdAt: "desc" },
-        take: 25,
-      });
-      activity = logs.map((l) => ({
-        id: l.id,
-        action: l.action,
-        detail: decodeJson(l.detail),
-        createdAt: l.createdAt,
-      }));
-    } catch {
-      activity = [];
+    let activity: any[] = [];
+    if (wantActivity) {
+      try {
+        const logs = await prisma.auditLog.findMany({
+          where: { guildId: params.guildId, action: { startsWith: "permit." } },
+          orderBy: { createdAt: "desc" },
+          take: 25,
+        });
+        activity = logs.map((l) => ({
+          id: l.id,
+          action: l.action,
+          detail: decodeJson(l.detail),
+          createdAt: l.createdAt,
+        }));
+      } catch {
+        activity = [];
+      }
     }
-  }
 
-  return NextResponse.json({ permits, allPermissions: ALL_PERMISSIONS, activity });
+    return NextResponse.json({ permits, allPermissions: ALL_PERMISSIONS, activity });
+  } catch (e) {
+    return dbError(e, "load");
+  }
 }
 
 /* --------------------------------- POST ---------------------------------- */
@@ -144,26 +180,34 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     return NextResponse.json({ ok: true, permit });
   }
 
-  const created = await prisma.dashboardRole.create({
-    data: {
-      guildId: params.guildId,
-      name: parsed.data.name,
-      description: parsed.data.description ?? null,
-      icon: parsed.data.icon,
-      enabled: parsed.data.enabled,
-      color: parsed.data.color,
-      priority: parsed.data.priority,
-      permissions: encodeList(permissions),
-      discordRoleIds: encodeList(parsed.data.discordRoleIds),
-      createdBy: authz.user.discordId,
-    },
-  });
-  await writeAudit(params.guildId, "permit.create", {
-    by: authz.user.username,
-    permit: created.name,
-    permissions: permissions.length,
-  });
-  return NextResponse.json({ ok: true, permit: shape(created) });
+  try {
+    // Ensure the Guild row exists so the DashboardRole foreign key can't fail
+    // on a guild the dashboard has never persisted before.
+    await ensureGuild(params.guildId, authz.guild.name, authz.guild.icon);
+
+    const created = await prisma.dashboardRole.create({
+      data: {
+        guildId: params.guildId,
+        name: parsed.data.name,
+        description: parsed.data.description ?? null,
+        icon: parsed.data.icon,
+        enabled: parsed.data.enabled,
+        color: parsed.data.color,
+        priority: parsed.data.priority,
+        permissions: encodeList(permissions),
+        discordRoleIds: encodeList(parsed.data.discordRoleIds),
+        createdBy: authz.user.discordId,
+      },
+    });
+    await writeAudit(params.guildId, "permit.create", {
+      by: authz.user.username,
+      permit: created.name,
+      permissions: permissions.length,
+    });
+    return NextResponse.json({ ok: true, permit: shape(created) });
+  } catch (e) {
+    return dbError(e, "create");
+  }
 }
 
 /* ---------------------------------- PUT ---------------------------------- */
@@ -188,28 +232,32 @@ export async function PUT(req: NextRequest, { params }: { params: { guildId: str
     return NextResponse.json({ ok: true, permit: arr[idx] });
   }
 
-  const existing = await prisma.dashboardRole.findFirst({
-    where: { id, guildId: params.guildId },
-  });
-  if (!existing) return NextResponse.json({ error: "Permit not found" }, { status: 404 });
+  try {
+    const existing = await prisma.dashboardRole.findFirst({
+      where: { id, guildId: params.guildId },
+    });
+    if (!existing) return NextResponse.json({ error: "Permit not found" }, { status: 404 });
 
-  const data: Record<string, unknown> = {};
-  if (changes.name !== undefined) data.name = changes.name;
-  if (changes.description !== undefined) data.description = changes.description ?? null;
-  if (changes.icon !== undefined) data.icon = changes.icon;
-  if (changes.enabled !== undefined) data.enabled = changes.enabled;
-  if (changes.color !== undefined) data.color = changes.color;
-  if (changes.priority !== undefined) data.priority = changes.priority;
-  if (changes.permissions !== undefined) data.permissions = encodeList(sanitizePerms(changes.permissions));
-  if (changes.discordRoleIds !== undefined) data.discordRoleIds = encodeList(changes.discordRoleIds);
+    const data: Record<string, unknown> = {};
+    if (changes.name !== undefined) data.name = changes.name;
+    if (changes.description !== undefined) data.description = changes.description ?? null;
+    if (changes.icon !== undefined) data.icon = changes.icon;
+    if (changes.enabled !== undefined) data.enabled = changes.enabled;
+    if (changes.color !== undefined) data.color = changes.color;
+    if (changes.priority !== undefined) data.priority = changes.priority;
+    if (changes.permissions !== undefined) data.permissions = encodeList(sanitizePerms(changes.permissions));
+    if (changes.discordRoleIds !== undefined) data.discordRoleIds = encodeList(changes.discordRoleIds);
 
-  const updated = await prisma.dashboardRole.update({ where: { id }, data });
-  await writeAudit(params.guildId, "permit.update", {
-    by: authz.user.username,
-    permit: updated.name,
-    fields: Object.keys(changes),
-  });
-  return NextResponse.json({ ok: true, permit: shape(updated) });
+    const updated = await prisma.dashboardRole.update({ where: { id }, data });
+    await writeAudit(params.guildId, "permit.update", {
+      by: authz.user.username,
+      permit: updated.name,
+      fields: Object.keys(changes),
+    });
+    return NextResponse.json({ ok: true, permit: shape(updated) });
+  } catch (e) {
+    return dbError(e, "update");
+  }
 }
 
 /* -------------------------------- DELETE --------------------------------- */
@@ -230,15 +278,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { guildId: 
     return NextResponse.json({ ok: true });
   }
 
-  const existing = await prisma.dashboardRole.findFirst({
-    where: { id, guildId: params.guildId },
-  });
-  await prisma.dashboardRole.deleteMany({ where: { id, guildId: params.guildId } });
-  if (existing) {
-    await writeAudit(params.guildId, "permit.delete", {
-      by: authz.user.username,
-      permit: existing.name,
+  try {
+    const existing = await prisma.dashboardRole.findFirst({
+      where: { id, guildId: params.guildId },
     });
+    await prisma.dashboardRole.deleteMany({ where: { id, guildId: params.guildId } });
+    if (existing) {
+      await writeAudit(params.guildId, "permit.delete", {
+        by: authz.user.username,
+        permit: existing.name,
+      });
+    }
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return dbError(e, "delete");
   }
-  return NextResponse.json({ ok: true });
 }

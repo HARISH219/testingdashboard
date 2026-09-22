@@ -12,6 +12,21 @@ export interface PermitActivity {
 }
 
 /**
+ * Parse a fetch Response as JSON without ever throwing "Unexpected end of JSON
+ * input". If the body is empty or not JSON (e.g. a platform 500 with an HTML
+ * error page), return a usable object with an error message instead.
+ */
+export async function safeJson(r: Response): Promise<any> {
+  const text = await r.text().catch(() => "");
+  if (!text) return { error: `Empty response (${r.status})` };
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: `Unexpected server response (${r.status})` };
+  }
+}
+
+/**
  * Loads permits (and optionally recent activity) for the current guild from the
  * real /roles API. Handles loading + error state and exposes a reload().
  */
@@ -25,7 +40,7 @@ export function usePermits(withActivity = false) {
     const qs = withActivity ? "?activity=1" : "";
     fetch(`/api/dashboard/${guild.id}/roles${qs}`)
       .then(async (r) => {
-        const d = await r.json();
+        const d = await safeJson(r);
         if (!r.ok) throw new Error(d.error ?? "Failed to load permits");
         return d;
       })

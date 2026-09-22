@@ -23,7 +23,7 @@ import {
   PermitGlyph, ArrowLink, type MenuAction,
 } from "@/components/dashboard/permits/permit-ui";
 import { CreatePermitWizard } from "@/components/dashboard/permits/create-permit-wizard";
-import { usePermits, describeActivity } from "@/components/dashboard/permits/use-permits";
+import { usePermits, describeActivity, safeJson } from "@/components/dashboard/permits/use-permits";
 import { computeEffective, catalogByCategory, PERMISSION_PRESETS, type Permit } from "@/lib/permits";
 import { timeAgo } from "@/lib/utils";
 
@@ -70,7 +70,7 @@ function PermitsInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...changes }),
       });
-      const d = await r.json();
+      const d = await safeJson(r);
       if (!r.ok) throw new Error(d.error ?? "Update failed");
       toast({ variant: "success", title: "Permit saved successfully" });
       reload();
@@ -97,7 +97,7 @@ function PermitsInner() {
           permissions: p.permissions,
         }),
       });
-      const d = await r.json();
+      const d = await safeJson(r);
       if (!r.ok) throw new Error(d.error ?? "Duplicate failed");
       toast({ variant: "success", title: "Permit duplicated" });
       reload();
@@ -113,7 +113,7 @@ function PermitsInner() {
     setBusy(true);
     try {
       const r = await fetch(`/api/dashboard/${guild.id}/roles?id=${confirmDelete.id}`, { method: "DELETE" });
-      if (!r.ok) throw new Error((await r.json()).error ?? "Delete failed");
+      if (!r.ok) throw new Error((await safeJson(r)).error ?? "Delete failed");
       toast({ variant: "success", title: "Permit deleted" });
       setConfirmDelete(null);
       reload();
