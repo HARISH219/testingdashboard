@@ -91,9 +91,9 @@ export default function LoginPage() {
       >
         <div className="glass-strong rounded-3xl p-8 text-center shadow-glass">
           <div className="mb-6 flex justify-center">
-            <Logo size="lg" showText={false} />
+            <Logo size="lg" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-snow">Welcome to Snowy</h1>
+          <h1 className="font-display text-2xl font-bold text-snow">Welcome to Soward</h1>
           <p className="mt-2 text-sm text-frost">
             Sign in with Discord to manage your servers.
           </p>

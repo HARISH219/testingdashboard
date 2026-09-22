@@ -51,7 +51,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-frost"
           >
-            Snowy brings powerful moderation, music, security, automation, and community
+            Soward brings powerful moderation, music, security, automation, and community
             tools into one beautifully simple dashboard.
           </motion.p>
 
@@ -125,11 +125,11 @@ export default function LandingPage() {
               Bring a little more order to your server.
             </h2>
             <p className="relative mx-auto mt-4 max-w-xl text-frost">
-              Powerful moderation. Beautifully simple. Get started with Snowy in minutes.
+              Powerful moderation. Beautifully simple. Get started with Soward in minutes.
             </p>
             <Button asChild size="lg" className="relative mt-8">
               <Link href="/login">
-                Get Started with Snowy <ArrowRight className="size-4" />
+                Get Started with Soward <ArrowRight className="size-4" />
               </Link>
             </Button>
           </div>
@@ -140,7 +140,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-white/[0.06] py-10">
         <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground sm:flex-row">
           <Logo size="sm" />
-          <p>© {new Date().getFullYear()} Snowy. Your Discord server, beautifully under control.</p>
+          <p>© {new Date().getFullYear()} Soward. Your Discord server, beautifully under control.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-snow">Privacy</Link>
             <Link href="/terms" className="hover:text-snow">Terms</Link>

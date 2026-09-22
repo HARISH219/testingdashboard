@@ -120,7 +120,7 @@ export function CommandDetail({ command }: { command: SnowyCommand }) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-arctic">Snowy</span>
+                        <span className="font-semibold text-arctic">Soward</span>
                         <span className="rounded bg-[#5865F2] px-1 py-0.5 text-[9px] font-bold text-white">
                           APP
                         </span>
@@ -191,7 +191,7 @@ export function CommandDetail({ command }: { command: SnowyCommand }) {
             <Card className="border-arctic/15 bg-arctic/[0.025] p-5">
               <p className="text-sm font-medium text-snow">Manage it visually</p>
               <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-                Configure this feature without memorizing commands in Snowy&apos;s dashboard.
+                Configure this feature without memorizing commands in Soward&apos;s dashboard.
               </p>
               <Button asChild variant="secondary" size="sm" className="mt-4 w-full">
                 <Link href="/servers">Open Dashboard</Link>

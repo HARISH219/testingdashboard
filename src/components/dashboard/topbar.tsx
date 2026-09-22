@@ -122,8 +122,8 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
       <Dialog open={notifOpen} onClose={() => setNotifOpen(false)} title="Notifications">
         <div className="space-y-2">
           {[
-            { t: "Welcome to Snowy", d: "Your dashboard is ready. Explore the modules on the left." },
-            { t: "Bot status", d: guild.botOnline ? "Snowy is online and connected." : "Snowy appears offline for this server." },
+            { t: "Welcome to Soward", d: "Your dashboard is ready. Explore the modules on the left." },
+            { t: "Bot status", d: guild.botOnline ? "Soward is online and connected." : "Soward appears offline for this server." },
           ].map((n, i) => (
             <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
               <p className="text-sm font-medium text-snow">{n.t}</p>

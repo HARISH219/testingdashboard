@@ -36,7 +36,7 @@ function Inner() {
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>New responder</CardTitle><CardDescription>When someone says the trigger, Snowy replies.</CardDescription></CardHeader>
+          <CardHeader><CardTitle>New responder</CardTitle><CardDescription>When someone says the trigger, Soward replies.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div><Label>Trigger</Label><Input className="mt-2" placeholder="hello" value={trigger} onChange={(e) => setTrigger(e.target.value)} /></div>
             <div><Label>Response</Label><Input className="mt-2" placeholder="Hi there! ❄️" value={response} onChange={(e) => setResponse(e.target.value)} /></div>

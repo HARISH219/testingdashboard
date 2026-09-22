@@ -89,7 +89,7 @@ export default function SetupPage() {
           <Snowflake className="mx-auto mb-4 size-10 text-arctic animate-float" />
           <h1 className="font-display text-3xl font-bold text-snow">Setup status</h1>
           <p className="mt-2 text-frost">
-            Everything Snowy needs, and exactly what&apos;s missing.
+            Everything Soward needs, and exactly what&apos;s missing.
           </p>
           {data && (
             <div className="mt-4 flex justify-center gap-2">

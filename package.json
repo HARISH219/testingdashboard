@@ -1,8 +1,8 @@
 {
-  "name": "snowy-dashboard",
+  "name": "soward-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "Snowy — Premium Discord bot management dashboard",
+  "description": "Soward — Premium Discord bot management dashboard",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

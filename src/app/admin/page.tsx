@@ -33,7 +33,7 @@ export default async function AdminPage() {
     <div>
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-snow">Admin dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Platform overview for Snowy administrators.</p>
+        <p className="mt-1 text-muted-foreground">Platform overview for Soward administrators.</p>
         {!stats.live && <Badge variant="warning" className="mt-3">Demo data — connect a database for live metrics</Badge>}
       </div>
 

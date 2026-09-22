@@ -23,7 +23,7 @@ export function MessagePreview({
         <div className="size-10 shrink-0 rounded-full bg-arctic/30" />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-arctic">Snowy</span>
+            <span className="font-medium text-arctic">Soward</span>
             <span className="rounded bg-arctic/20 px-1 text-[10px] font-semibold text-arctic">APP</span>
             <span className="text-[11px] text-white/40">Today</span>
           </div>

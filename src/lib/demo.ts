@@ -10,7 +10,7 @@ export const DEMO_USER: DiscordUser = {
   username: "frostadmin",
   global_name: "Frost",
   avatar: null,
-  email: "demo@snowy.app",
+  email: "demo@soward.app",
 };
 
 export const DEMO_GUILDS: (DiscordGuild & { botInstalled: boolean; memberCount: number })[] = [

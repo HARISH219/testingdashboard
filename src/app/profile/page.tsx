@@ -43,7 +43,7 @@ export default function ProfilePage() {
               <h1 className="font-display text-2xl font-bold text-snow">{user.globalName ?? user.username}</h1>
               <p className="text-sm text-muted-foreground">@{user.username}</p>
               <div className="mt-2 flex gap-2">
-                {user.isAdmin && <Badge><Shield className="size-3" /> Snowy Admin</Badge>}
+                {user.isAdmin && <Badge><Shield className="size-3" /> Soward Admin</Badge>}
                 <Badge variant="secondary" className="font-mono">{user.discordId}</Badge>
               </div>
             </div>

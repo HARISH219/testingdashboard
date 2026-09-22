@@ -2,7 +2,7 @@ import { PricingCards } from "@/components/marketing/pricing-cards";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
 import { Snowfall } from "@/components/snowfall";
 
-export const metadata = { title: "Pricing — Snowy" };
+export const metadata = { title: "Pricing — Soward" };
 
 export default function PricingPage() {
   return (

@@ -185,7 +185,7 @@ export function CommandsExplorer() {
                   : COMMAND_CATEGORIES.find((item) => item.name.toLowerCase() === category)?.name}
               </h1>
               <p className="mt-3 text-sm leading-6 text-frost sm:text-base">
-                Explore every command Snowy actually supports. Search by name, description,
+                Explore every command Soward actually supports. Search by name, description,
                 category, aliases, or keywords.
               </p>
             </motion.div>

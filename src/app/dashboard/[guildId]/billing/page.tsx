@@ -19,7 +19,7 @@ export default function BillingPage() {
 
   React.useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    if (p.get("success")) toast({ variant: "success", title: "Subscription active", description: "Thanks for upgrading Snowy!" });
+    if (p.get("success")) toast({ variant: "success", title: "Subscription active", description: "Thanks for upgrading Soward!" });
     if (p.get("canceled")) toast({ variant: "info", title: "Checkout canceled" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

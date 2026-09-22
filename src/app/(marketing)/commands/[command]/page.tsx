@@ -11,9 +11,9 @@ interface CommandPageProps {
 
 export function generateMetadata({ params }: CommandPageProps): Metadata {
   const command = getCommand(params.command);
-  if (!command) return { title: "Command not found — Snowy" };
+  if (!command) return { title: "Command not found — Soward" };
   return {
-    title: `/${command.name} — Snowy Commands`,
+    title: `/${command.name} — Soward Commands`,
     description: command.description,
   };
 }

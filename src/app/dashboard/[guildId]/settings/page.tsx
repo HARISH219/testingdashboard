@@ -9,7 +9,7 @@ export default function Page() {
       sections={[
         {
           title: "General",
-          description: "Core server configuration for Snowy.",
+          description: "Core server configuration for Soward.",
           fields: [
             { key: "prefix", label: "Command prefix", type: "text", placeholder: "!" },
             { key: "timezone", label: "Timezone", type: "select", options: [

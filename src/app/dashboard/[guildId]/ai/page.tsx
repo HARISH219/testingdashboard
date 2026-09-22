@@ -25,7 +25,7 @@ interface AIConfig extends Record<string, unknown> {
 
 const defaults: AIConfig = {
   channelId: "", provider: "openai",
-  systemPrompt: "You are Snowy, a friendly and helpful assistant for this Discord server.",
+  systemPrompt: "You are Soward, a friendly and helpful assistant for this Discord server.",
   imageGen: false,
 };
 

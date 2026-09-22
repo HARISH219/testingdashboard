@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { BRAND } from "@/lib/brand";
 
 /**
  * Mobile viewport. `maximumScale` is deliberately left unset so users can still
@@ -13,9 +14,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Snowy — Your Discord server, beautifully under control.",
-  description:
-    "Snowy brings powerful moderation, music, security, automation, and community tools into one beautifully simple dashboard.",
+  title: `${BRAND.name} — ${BRAND.tagline}`,
+  description: BRAND.description,
   icons: { icon: "/favicon.svg" },
 };
 

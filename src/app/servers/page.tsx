@@ -83,7 +83,7 @@ export default function ServersPage() {
           className="mb-8 text-center"
         >
           <h1 className="font-display text-3xl font-bold text-snow">Select a server</h1>
-          <p className="mt-2 text-frost">Choose a server to manage with Snowy.</p>
+          <p className="mt-2 text-frost">Choose a server to manage with Soward.</p>
           {demo && (
             <Badge variant="warning" className="mt-3">
               Demo mode — showing sample servers
@@ -145,11 +145,11 @@ export default function ServersPage() {
             <div className="flex items-start gap-3">
               <Info className="mt-0.5 size-5 shrink-0 text-arctic" />
               <div>
-                <p className="text-sm font-medium text-snow">Add Snowy to a server to begin</p>
+                <p className="text-sm font-medium text-snow">Add Soward to a server to begin</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  You manage {filtered.length} server{filtered.length > 1 ? "s" : ""}, but Snowy
+                  You manage {filtered.length} server{filtered.length > 1 ? "s" : ""}, but Soward
                   isn&apos;t in {filtered.length > 1 ? "any of them" : "it"} yet. Use{" "}
-                  <span className="text-frost">Invite Snowy</span> below, then refresh this page.
+                  <span className="text-frost">Invite Soward</span> below, then refresh this page.
                 </p>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function ServersPage() {
                     {g.owner && <Badge variant="secondary">Owner</Badge>}
                     {g.botInstalled ? (
                       <Badge variant="success">
-                        <Check className="size-3" /> Snowy installed
+                        <Check className="size-3" /> Soward installed
                       </Badge>
                     ) : (
                       <Badge variant="outline">Not installed</Badge>
@@ -209,7 +209,7 @@ export default function ServersPage() {
                     ) : (
                       <Button asChild variant="secondary" className="w-full">
                         <a href={inviteUrl} target="_blank" rel="noreferrer">
-                          <Plus className="size-4" /> Invite Snowy
+                          <Plus className="size-4" /> Invite Soward
                         </a>
                       </Button>
                     )}

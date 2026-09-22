@@ -6,8 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { COMMANDS } from "@/lib/commands";
 
 export const metadata = {
-  title: "Commands — Snowy",
-  description: `Explore all ${COMMANDS.length} commands supported by Snowy, organized by category.`,
+  title: "Commands — Soward",
+  description: `Explore all ${COMMANDS.length} commands supported by Soward, organized by category.`,
 };
 
 export default function CommandsPage() {

@@ -21,7 +21,7 @@ export function MarketingHeader() {
   return (
     <header className="relative z-40 border-b border-white/[0.05] bg-navy/35 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between gap-3 sm:h-20">
-        <Link href="/" aria-label="Snowy home" className="shrink-0">
+        <Link href="/" aria-label="Soward home" className="shrink-0">
           <Logo size="sm" className="sm:hidden" />
           <Logo className="hidden sm:flex" />
         </Link>
