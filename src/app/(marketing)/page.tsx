@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Snowflake } from "lucide-react";
+import { ArrowRight, Sparkles, Snowflake, LayoutDashboard } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Snowfall } from "@/components/snowfall";
 import { Button } from "@/components/ui/button";
@@ -24,13 +24,21 @@ export default function LandingPage() {
           <nav className="hidden items-center gap-8 text-sm text-frost md:flex">
             <a href="#features" className="hover:text-snow transition-colors">Features</a>
             <a href="#pricing" className="hover:text-snow transition-colors">Pricing</a>
-            <Link href="/login" className="hover:text-snow transition-colors">Login</Link>
+            <Link href="/servers" className="hover:text-snow transition-colors">Dashboard</Link>
           </nav>
-          <Button asChild variant="secondary" size="sm">
-            <Link href="/login">
-              <DiscordIcon className="size-4" /> Login
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="/servers">
+                <LayoutDashboard className="size-4" /> Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" size="sm">
+              <Link href="/login">
+                <DiscordIcon className="size-4" />
+                <span className="hidden xs:inline">Login</span>
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -72,17 +80,22 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            className="mx-auto mt-8 grid w-full max-w-md grid-cols-1 gap-3 sm:flex sm:max-w-none sm:flex-wrap sm:items-center sm:justify-center"
           >
-            <Button asChild size="lg" variant="discord">
+            <Button asChild size="lg" variant="discord" className="w-full sm:w-auto">
               <Link href="/login">
                 <DiscordIcon className="size-5" /> Login with Discord
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href="/servers">
+                <LayoutDashboard className="size-5" /> Open Dashboard
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
               <a href="#features">Explore Features</a>
             </Button>
-            <Button asChild size="lg" variant="ghost">
+            <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
               <a href="#pricing">View Pricing</a>
             </Button>
           </motion.div>

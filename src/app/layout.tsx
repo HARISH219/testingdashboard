@@ -1,6 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+
+/**
+ * Mobile viewport. `maximumScale` is deliberately left unset so users can still
+ * pinch-zoom — disabling that is an accessibility failure.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#07111F",
+};
 
 export const metadata: Metadata = {
   title: "Snowy — Your Discord server, beautifully under control.",

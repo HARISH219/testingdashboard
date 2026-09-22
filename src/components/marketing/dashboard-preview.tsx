@@ -25,23 +25,23 @@ export function DashboardPreview() {
             <div className="ml-3 h-5 w-40 rounded-md bg-white/[0.05]" />
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
             {[
               { icon: Users, label: "Members", value: "1,284", tint: "text-arctic" },
               { icon: ShieldCheck, label: "Bot Status", value: "Online", tint: "text-success" },
               { icon: Activity, label: "Mod Actions", value: "248", tint: "text-ice" },
               { icon: Music, label: "Music", value: "Playing", tint: "text-arctic" },
             ].map((s) => (
-              <div key={s.label} className="glass rounded-xl p-3">
-                <s.icon className={`mb-2 size-4 ${s.tint}`} />
-                <div className="text-lg font-bold text-snow">{s.value}</div>
+              <div key={s.label} className="glass rounded-xl p-2.5 sm:p-3">
+                <s.icon className={`mb-1.5 size-4 sm:mb-2 ${s.tint}`} />
+                <div className="text-base font-bold text-snow sm:text-lg">{s.value}</div>
                 <div className="text-[10px] text-muted-foreground">{s.label}</div>
               </div>
             ))}
           </div>
 
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            <div className="glass col-span-2 rounded-xl p-4">
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:mt-3 sm:grid-cols-3 sm:gap-3">
+            <div className="glass rounded-xl p-4 sm:col-span-2">
               <div className="mb-3 h-3 w-24 rounded bg-white/10" />
               <div className="flex h-24 items-end gap-1.5">
                 {[40, 65, 45, 80, 55, 90, 70, 60, 85, 50, 75, 95].map((h, i) => (

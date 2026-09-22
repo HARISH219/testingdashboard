@@ -42,23 +42,31 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
         >
           <Menu className="size-5" />
         </button>
-        <nav className="flex items-center gap-1.5 text-sm">
-          <Link href="/servers" className="text-muted-foreground hover:text-snow">
+        <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+          <Link href="/servers" className="shrink-0 text-muted-foreground hover:text-snow">
             Servers
           </Link>
-          <ChevronRight className="size-3.5 text-muted-foreground/50" />
-          <span className="hidden text-frost sm:inline">{guild.name}</span>
-          <ChevronRight className="hidden size-3.5 text-muted-foreground/50 sm:inline" />
-          <span className="font-medium text-snow">{crumb}</span>
+          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/50" />
+          <span className="hidden max-w-[160px] truncate text-frost sm:inline">{guild.name}</span>
+          <ChevronRight className="hidden size-3.5 shrink-0 text-muted-foreground/50 sm:inline" />
+          <span className="truncate font-medium text-snow">{crumb}</span>
         </nav>
       </div>
 
-      <div className="flex items-center gap-2">
-        {/* Bot status */}
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        {/* Bot status: full badge on desktop, a status dot on phones so it is
+            still visible without crowding the bar. */}
         <Badge variant={guild.botOnline ? "success" : "destructive"} className="hidden sm:flex">
           <span className={cn("size-1.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-destructive")} />
           {guild.botOnline ? "Bot online" : "Bot offline"}
         </Badge>
+        <span
+          className="grid size-9 place-items-center sm:hidden"
+          title={guild.botOnline ? "Bot online" : "Bot offline"}
+          aria-label={guild.botOnline ? "Bot online" : "Bot offline"}
+        >
+          <span className={cn("size-2.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-destructive")} />
+        </span>
 
         {/* Notifications */}
         <button
@@ -85,7 +93,7 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
         {menuOpen && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-            <div className="absolute right-4 top-14 z-50 w-52 rounded-xl border border-white/10 bg-popover p-1.5 shadow-glass backdrop-blur-xl">
+            <div className="absolute right-2 top-14 z-50 w-52 max-w-[calc(100vw-1rem)] rounded-xl border border-white/10 bg-popover p-1.5 shadow-glass backdrop-blur-xl sm:right-4">
               <Link
                 href="/profile"
                 onClick={() => setMenuOpen(false)}

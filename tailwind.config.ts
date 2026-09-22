@@ -14,6 +14,10 @@ const config: Config = {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      screens: {
+        // Extra-small phones (iPhone SE and similar) need a step below `sm`.
+        xs: "420px",
+      },
       colors: {
         // Snowy theme — driven by CSS variables (see globals.css)
         navy: "hsl(var(--navy) / <alpha-value>)",

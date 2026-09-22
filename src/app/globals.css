@@ -79,9 +79,14 @@
   }
   html {
     scroll-behavior: smooth;
+    /* Never allow sideways scrolling on phones. */
+    overflow-x: hidden;
+    /* Respect notches / rounded corners on mobile. */
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden;
     background-image:
       radial-gradient(1200px 800px at 15% -10%, hsl(202 90% 40% / 0.18), transparent 60%),
       radial-gradient(1000px 700px at 95% 0%, hsl(210 70% 30% / 0.22), transparent 55%),
