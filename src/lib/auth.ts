@@ -13,7 +13,14 @@ import { DEMO_USER } from "./demo";
  *   locally without Discord credentials.
  */
 
-const scopes = ["identify", "email", "guilds"].join(" ");
+/**
+ * Minimum scopes Snowy needs. Deliberately excludes `email`:
+ *   identify -> user id, username, avatar (to show who is signed in)
+ *   guilds   -> the servers the user is in (to build the server selector)
+ * We never use the email address, so we don't ask for it. Requesting less
+ * means less to leak and a shorter consent screen for the user.
+ */
+const scopes = ["identify", "guilds"].join(" ");
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },

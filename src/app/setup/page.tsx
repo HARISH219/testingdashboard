@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   CheckCircle2, AlertTriangle, XCircle, RefreshCw, Copy, ArrowRight, Snowflake,
+  KeyRound, ExternalLink,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Snowfall } from "@/components/snowfall";
@@ -33,6 +34,17 @@ export default function SetupPage() {
   const { toast } = useToast();
   const [data, setData] = React.useState<{ mode: string; ready: boolean; checks: Check[] } | null>(null);
   const [loading, setLoading] = React.useState(true);
+
+  /**
+   * Built from the origin actually being used to view this page, so it is
+   * correct on localhost and on the deployed domain without configuration.
+   */
+  const [redirectUri, setRedirectUri] = React.useState(
+    "http://localhost:3000/api/auth/callback/discord"
+  );
+  React.useEffect(() => {
+    setRedirectUri(`${window.location.origin}/api/auth/callback/discord`);
+  }, []);
 
   const load = React.useCallback(() => {
     setLoading(true);
@@ -90,6 +102,49 @@ export default function SetupPage() {
             </div>
           )}
         </motion.div>
+
+        {/* The one step that cannot be automated or verified from here, so make
+            it impossible to mistype. */}
+        {data && (
+          <Card className="mb-6 border-arctic/25 bg-arctic/[0.04] p-5">
+            <div className="flex items-start gap-3">
+              <KeyRound className="mt-0.5 size-5 shrink-0 text-arctic" />
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-snow">
+                  Required: add this exact redirect URI to Discord
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Developer Portal → your application → <strong>OAuth2 → Redirects</strong>.
+                  Sign-in fails with <code>invalid_redirect_uri</code> until this matches
+                  character for character.
+                </p>
+
+                <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-navy/60 p-3">
+                  <code className="min-w-0 flex-1 break-all font-mono text-sm text-arctic">
+                    {redirectUri}
+                  </code>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => copy(redirectUri)}
+                    className="shrink-0"
+                  >
+                    <Copy className="size-3.5" /> Copy
+                  </Button>
+                </div>
+
+                <a
+                  href="https://discord.com/developers/applications"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm text-arctic hover:underline"
+                >
+                  Open Discord Developer Portal <ExternalLink className="size-3.5" />
+                </a>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {loading && (
           <div className="space-y-3">

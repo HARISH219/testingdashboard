@@ -18,6 +18,11 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [problem, setProblem] = React.useState<string | null>(null);
   const [discordReady, setDiscordReady] = React.useState<boolean | null>(null);
+  const [redirectUri, setRedirectUri] = React.useState("");
+
+  React.useEffect(() => {
+    setRedirectUri(`${window.location.origin}/api/auth/callback/discord`);
+  }, []);
 
   React.useEffect(() => {
     if (status === "authenticated") router.replace("/servers");
@@ -94,8 +99,15 @@ export default function LoginPage() {
           </p>
 
           {params.get("error") && (
-            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              Sign in failed: {params.get("error")}
+            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-left text-sm text-destructive">
+              <p className="font-medium">Sign in failed: {params.get("error")}</p>
+              <p className="mt-1 text-destructive/90">
+                If Discord reported an invalid redirect, add this URI under OAuth2 →
+                Redirects:
+              </p>
+              <code className="mt-2 block break-all rounded-lg bg-navy/60 p-2 font-mono text-xs text-arctic">
+                {redirectUri}
+              </code>
             </div>
           )}
 
