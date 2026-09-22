@@ -92,14 +92,20 @@ async function ensureGuild(guildId: string, name: string, icon: string | null) {
  */
 function dbError(e: unknown, op: string) {
   const message = e instanceof Error ? e.message : String(e);
-  const missingColumn = /no such column|has no column|no such table/i.test(message);
+
+  let hint = `Could not ${op} permit.`;
+  if (/no such column|has no column/i.test(message)) {
+    hint = "The database is missing the latest permit columns. Run `npm run db:init:turso` to apply them.";
+  } else if (/no such table/i.test(message)) {
+    hint = "The database tables don't exist yet. Run `npm run db:init:turso` to create them.";
+  } else if (/foreign key/i.test(message)) {
+    hint = "Could not link this permit to the server record. Run `npm run db:init:turso`, then try again.";
+  } else if (/auth|token|unauthorized|401|url|libsql|connect|network|fetch failed/i.test(message)) {
+    hint = "The dashboard couldn't reach the database. Check DATABASE_URL and TURSO_AUTH_TOKEN in your environment.";
+  }
+
   return NextResponse.json(
-    {
-      error: missingColumn
-        ? "The database is missing the latest permit columns. Run `npm run db:init:turso` to apply them."
-        : `Could not ${op} permit.`,
-      detail: message.slice(0, 300),
-    },
+    { error: hint, detail: message.slice(0, 400) },
     { status: 500 }
   );
 }

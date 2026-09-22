@@ -95,7 +95,10 @@ export function CreatePermitWizard({
         }),
       });
       const d = await safeJson(r);
-      if (!r.ok) throw new Error(d.error ?? `Request failed (${r.status})`);
+      if (!r.ok) {
+        const msg = d.detail ? `${d.error ?? "Failed"} — ${d.detail}` : d.error ?? `Request failed (${r.status})`;
+        throw new Error(msg);
+      }
       toast({ variant: "success", title: "Permit created", description: `${form.name} is ready.` });
       onCreated();
       onClose();
