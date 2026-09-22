@@ -102,7 +102,15 @@ export async function authorizeGuild(
 ): Promise<{ user: SessionUser; guild: ManageableGuild } | null> {
   const user = await getSessionUser();
   if (!user) return null;
-  const guilds = await getManageableGuildsForUser(user);
+  let guilds: ManageableGuild[];
+  try {
+    guilds = await getManageableGuildsForUser(user);
+  } catch {
+    // A failure fetching guilds (expired OAuth token, Discord API hiccup) must
+    // read as "not authorized" so callers redirect to /servers, rather than
+    // throwing an uncaught error that crashes the dashboard render.
+    return null;
+  }
   const guild = guilds.find((g) => g.id === guildId);
   if (!guild) return null;
   if (!guild.owner && !canManageGuild(guild.permissions) && !user.isAdmin) return null;
@@ -123,17 +131,24 @@ export async function getGuildPermissions(
   }
   if (!HAS_DATABASE) return [];
 
-  const dbUser = await prisma.user.findUnique({ where: { discordId: user.discordId } });
-  if (!dbUser) return [];
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { discordId: user.discordId } });
+    if (!dbUser) return [];
 
-  const roles = await prisma.dashboardRole.findMany({
-    where: {
-      guildId: guild.id,
-      members: { some: { userId: dbUser.id } },
-    },
-    select: { permissions: true },
-  });
-  return Array.from(new Set(roles.flatMap((r) => decodeList(r.permissions))));
+    const roles = await prisma.dashboardRole.findMany({
+      where: {
+        guildId: guild.id,
+        members: { some: { userId: dbUser.id } },
+      },
+      select: { permissions: true },
+    });
+    return Array.from(new Set(roles.flatMap((r) => decodeList(r.permissions))));
+  } catch {
+    // DB unreachable or not yet migrated — grant no distributed permissions
+    // rather than crashing. Owners/admins already returned "*" above, so this
+    // only affects delegated roles, which safely fall back to "no extra access".
+    return [];
+  }
 }
 
 /** Assert a permission or throw a typed error for API routes. */

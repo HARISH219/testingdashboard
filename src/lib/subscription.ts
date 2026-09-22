@@ -11,12 +11,18 @@ export async function getGuildTier(guildId: string): Promise<PlanTier> {
   if (!HAS_DATABASE) {
     return guildId.endsWith("1") ? "PREMIUM" : "FREE";
   }
-  const sub = await prisma.subscription.findUnique({ where: { guildId } });
-  if (!sub) return "FREE";
-  const active = sub.status === "ACTIVE" || sub.status === "TRIALING";
-  if (!active) return "FREE";
-  // tier is a plain string column on SQLite, so validate before trusting it.
-  return sub.tier in PLANS ? (sub.tier as PlanTier) : "FREE";
+  try {
+    const sub = await prisma.subscription.findUnique({ where: { guildId } });
+    if (!sub) return "FREE";
+    const active = sub.status === "ACTIVE" || sub.status === "TRIALING";
+    if (!active) return "FREE";
+    // tier is a plain string column on SQLite, so validate before trusting it.
+    return sub.tier in PLANS ? (sub.tier as PlanTier) : "FREE";
+  } catch {
+    // DB unreachable or tables not created yet — never take down the page over
+    // a plan lookup. Degrade to FREE so the dashboard still renders.
+    return "FREE";
+  }
 }
 
 export async function getGuildLimits(guildId: string): Promise<PlanFeatureLimits> {
