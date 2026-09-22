@@ -44,6 +44,12 @@ export function greeting(): string {
   return "Good evening";
 }
 
+/** Convert a Discord role color integer to a hex string. 0 = no color. */
+export function intToHexColor(color: number | null | undefined, fallback = "#A9BBCB"): string {
+  if (!color || color <= 0) return fallback;
+  return "#" + color.toString(16).padStart(6, "0");
+}
+
 /** Discord guild icon URL */
 export function guildIconUrl(id: string, icon: string | null, size = 128): string | null {
   if (!icon) return null;

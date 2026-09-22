@@ -124,10 +124,14 @@ const STATEMENTS = [
     "id" TEXT NOT NULL PRIMARY KEY,
     "guildId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "description" TEXT,
+    "icon" TEXT NOT NULL DEFAULT 'Shield',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
     "color" TEXT NOT NULL DEFAULT '#9EDCFF',
     "permissions" TEXT NOT NULL DEFAULT '[]',
     "discordRoleIds" TEXT NOT NULL DEFAULT '[]',
     "priority" INTEGER NOT NULL DEFAULT 0,
+    "createdBy" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "DashboardRole_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE
@@ -244,6 +248,31 @@ for (const stmt of STATEMENTS) {
 }
 out.push(`DDL applied: ${ok}/${STATEMENTS.length}`);
 for (const f of failures) out.push(`  FAILED ${f.stmt}... -> ${f.error}`);
+
+// Additive column migrations for databases created before the Permits upgrade.
+// `CREATE TABLE IF NOT EXISTS` above is a no-op on an existing table, so new
+// columns must be added explicitly. SQLite has no "ADD COLUMN IF NOT EXISTS",
+// so we simply attempt each and ignore the "duplicate column" error — making
+// the whole step idempotent.
+const ALTERS = [
+  `ALTER TABLE "DashboardRole" ADD COLUMN "description" TEXT`,
+  `ALTER TABLE "DashboardRole" ADD COLUMN "icon" TEXT NOT NULL DEFAULT 'Shield'`,
+  `ALTER TABLE "DashboardRole" ADD COLUMN "enabled" BOOLEAN NOT NULL DEFAULT true`,
+  `ALTER TABLE "DashboardRole" ADD COLUMN "createdBy" TEXT`,
+];
+let altered = 0;
+for (const stmt of ALTERS) {
+  try {
+    await client.execute(stmt);
+    altered++;
+  } catch (e) {
+    // Ignore "duplicate column name" — column already exists. Surface anything else.
+    if (!/duplicate column/i.test(e.message)) {
+      out.push(`  ALTER note: ${stmt.slice(0, 60).replace(/\s+/g, " ")}... -> ${e.message}`);
+    }
+  }
+}
+out.push(`Permit column migrations applied: ${altered} new`);
 
 // Seed plan configs.
 try {

@@ -146,17 +146,23 @@ model PlanConfig {
 // Distributed roles / permissions
 // ---------------------------------------------------------------------------
 
+// A "Permit" in the dashboard UI. Maps one or more Discord roles to a set of
+// module/feature permissions. Presented as premium permission-management cards.
 model DashboardRole {
   id          String   @id @default(cuid())
   guildId     String
   guild       Guild    @relation(fields: [guildId], references: [id], onDelete: Cascade)
   name        String
+  description String? // human-friendly summary shown on permit cards
+  icon        String   @default("Shield") // lucide icon name for the permit
+  enabled     Boolean  @default(true) // active/inactive status
   color       String   @default("#9EDCFF")
   /// JSON array, e.g. ["moderation:manage","giveaways:view"]
   permissions String   @default("[]")
   /// JSON array of Discord role ids granted this dashboard role
   discordRoleIds String @default("[]")
   priority    Int      @default(0) // hierarchy; higher = more senior
+  createdBy   String? // Discord id of the user who created the permit
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

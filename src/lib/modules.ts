@@ -286,13 +286,13 @@ export const MODULES: DashboardModule[] = [
   },
   {
     key: "roles",
-    name: "Permissions",
-    description: "Distributed dashboard roles and access control.",
+    name: "Permits",
+    description: "Role-based permits and granular access control.",
     icon: "KeyRound",
     category: "settings",
     minPlan: "FREE",
     commands: [],
-    href: "/permissions",
+    href: "/permits",
   },
   {
     key: "settings",
