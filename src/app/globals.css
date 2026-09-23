@@ -13,57 +13,66 @@
 
 @layer base {
   :root {
-    /* ---- Snowy theme (HSL channels) ---- */
-    /* Deep navy #07111F */
-    --navy: 213 60% 8%;
-    /* Arctic blue #9EDCFF */
-    --arctic: 202 100% 81%;
-    /* Ice blue #DDF4FF */
-    --ice: 202 100% 93%;
-    /* Snow white #F8FCFF */
-    --snow: 204 100% 99%;
-    /* Frost gray #A9BBCB */
-    --frost: 209 24% 73%;
-    /* Dark blue #0D1B2A */
-    --dark-blue: 210 53% 11%;
-    /* Muted blue #6E8FA8 */
-    --muted-blue: 203 22% 55%;
+    /* ---- Soward theme (HSL channels) ----
+     * Near-black security-product palette. The whole UI is driven by these
+     * tokens (consumed as hsl(var(--x))), so recoloring here restyles every
+     * module at once. Accent is a restrained blue, not cyan glow. */
+    /* Near-black base #0A0A0B */
+    --navy: 240 6% 4%;
+    /* Soward blue accent #3B82F6 */
+    --arctic: 217 91% 60%;
+    /* Lighter blue #60A5FA */
+    --ice: 213 94% 68%;
+    /* Near-white text #F5F6F7 */
+    --snow: 210 17% 96%;
+    /* Muted gray #9A9AA2 */
+    --frost: 240 4% 62%;
+    /* Slightly-raised near-black #141416 */
+    --dark-blue: 240 6% 8%;
+    /* Muted gray #6B6B73 */
+    --muted-blue: 240 4% 44%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    --background: 213 60% 8%;
-    --foreground: 204 100% 99%;
+    /* Near-black #0A0A0B */
+    --background: 240 6% 4%;
+    --foreground: 210 17% 96%;
 
-    --card: 210 45% 12%;
-    --card-foreground: 204 100% 99%;
+    /* Card #101012 */
+    --card: 240 6% 6.5%;
+    --card-foreground: 210 17% 96%;
 
-    --popover: 210 50% 10%;
-    --popover-foreground: 204 100% 99%;
+    /* Popover / dropdown #161618 */
+    --popover: 240 5% 9%;
+    --popover-foreground: 210 17% 96%;
 
-    --primary: 202 100% 81%;
-    --primary-foreground: 213 60% 8%;
+    /* Primary = Soward blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 16%;
-    --secondary-foreground: 204 100% 99%;
+    /* Secondary = dark gray surface */
+    --secondary: 240 5% 12%;
+    --secondary-foreground: 210 17% 96%;
 
-    --muted: 210 35% 18%;
-    --muted-foreground: 209 24% 73%;
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 4% 58%;
 
-    --accent: 202 90% 70%;
-    --accent-foreground: 213 60% 8%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 58%;
-    --destructive-foreground: 204 100% 99%;
+    --destructive: 0 62% 46%;
+    --destructive-foreground: 210 17% 96%;
 
-    --success: 152 62% 47%;
-    --success-foreground: 213 60% 8%;
+    --success: 152 55% 45%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 58%;
-    --warning-foreground: 213 60% 8%;
+    --warning: 38 88% 55%;
+    --warning-foreground: 240 6% 4%;
 
-    --border: 205 30% 24%;
-    --input: 205 30% 22%;
-    --ring: 202 100% 81%;
+    /* ~#202022 thin dark-gray border */
+    --border: 240 5% 13%;
+    --input: 240 5% 13%;
+    --ring: 217 91% 60%;
 
     /* Full fallback stack — the UI stays correct if the font CDN is unavailable. */
     --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
@@ -87,10 +96,11 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     overflow-x: hidden;
+    /* Very subtle dark gradient — no bright glow. Keeps the near-black,
+       serious security-product feel described in the design system. */
     background-image:
-      radial-gradient(1200px 800px at 15% -10%, hsl(202 90% 40% / 0.18), transparent 60%),
-      radial-gradient(1000px 700px at 95% 0%, hsl(210 70% 30% / 0.22), transparent 55%),
-      radial-gradient(900px 900px at 50% 120%, hsl(202 80% 45% / 0.10), transparent 60%);
+      radial-gradient(1100px 700px at 15% -10%, hsl(217 60% 20% / 0.06), transparent 60%),
+      radial-gradient(1000px 700px at 95% 0%, hsl(240 10% 12% / 0.35), transparent 55%);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -120,15 +130,16 @@
 }
 
 @layer components {
-  /* Frosted glass panel */
+  /* Card surface — near-black with a thin dark-gray border and minimal blur.
+     Deliberately restrained: no heavy glass or glow (see design system). */
   .glass {
-    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-glass;
+    @apply bg-card/80 backdrop-blur-md border border-border shadow-glass;
   }
   .glass-strong {
-    @apply bg-white/[0.06] backdrop-blur-2xl border border-white/[0.10] shadow-glass;
+    @apply bg-popover/90 backdrop-blur-lg border border-border shadow-glass;
   }
   .glass-hover {
-    @apply transition-all duration-300 hover:bg-white/[0.07] hover:border-white/[0.16] hover:shadow-glow-sm;
+    @apply transition-colors duration-200 hover:bg-white/[0.03] hover:border-white/[0.12];
   }
 
   .frost-border {

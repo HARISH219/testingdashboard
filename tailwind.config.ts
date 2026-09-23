@@ -83,9 +83,9 @@ const config: Config = {
         xs: "2px",
       },
       boxShadow: {
-        glass: "0 8px 32px rgba(4, 10, 20, 0.45)",
-        glow: "0 0 40px rgba(158, 220, 255, 0.15)",
-        "glow-sm": "0 0 20px rgba(158, 220, 255, 0.12)",
+        glass: "0 4px 24px rgba(0, 0, 0, 0.4)",
+        glow: "0 0 24px rgba(59, 130, 246, 0.18)",
+        "glow-sm": "0 0 12px rgba(59, 130, 246, 0.14)",
       },
       keyframes: {
         "accordion-down": {
