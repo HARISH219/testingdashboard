@@ -221,6 +221,27 @@ const STATEMENTS = [
     "announcement" TEXT,
     "updatedAt" DATETIME NOT NULL
   )`,
+
+  `CREATE TABLE IF NOT EXISTS "Payment" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "guildId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "discordId" TEXT NOT NULL,
+    "provider" TEXT NOT NULL DEFAULT 'razorpay',
+    "razorpayOrderId" TEXT NOT NULL,
+    "razorpayPaymentId" TEXT NOT NULL,
+    "razorpaySignature" TEXT NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'INR',
+    "tier" TEXT NOT NULL,
+    "interval" TEXT NOT NULL DEFAULT 'monthly',
+    "status" TEXT NOT NULL DEFAULT 'captured',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "Payment_razorpayPaymentId_key" ON "Payment"("razorpayPaymentId")`,
+  `CREATE INDEX IF NOT EXISTS "Payment_guildId_idx" ON "Payment"("guildId")`,
+  `CREATE INDEX IF NOT EXISTS "Payment_userId_idx" ON "Payment"("userId")`,
 ];
 
 // Seed rows for the three plan tiers (pricing is admin-editable later).

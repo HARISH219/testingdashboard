@@ -103,9 +103,29 @@ export default function BillingPage() {
               }),
             });
             const vd = await v.json();
-            if (!v.ok) throw new Error(vd.error ?? "Verification failed");
-            toast({ variant: "success", title: "Payment successful", description: `You're now on ${PLANS[tier].name}. Reloading…` });
-            setTimeout(() => window.location.reload(), 1200);
+            // Only celebrate once the backend confirms the payment was recorded
+            // AND the subscription activated. A verified-but-unrecorded payment
+            // (stage: "database") must NOT show "Payment Successful".
+            if (v.ok && vd.success) {
+              toast({
+                variant: "success",
+                title: "Payment successful",
+                description: vd.alreadyProcessed
+                  ? "This payment was already applied. Reloading…"
+                  : `You're now on ${PLANS[tier].name}. Reloading…`,
+              });
+              setTimeout(() => window.location.reload(), 1200);
+              return;
+            }
+            if (vd.stage === "database") {
+              toast({
+                variant: "error",
+                title: "Couldn't activate Premium",
+                description: "Payment received, but we couldn't activate your Premium plan yet. Please contact support.",
+              });
+              return;
+            }
+            throw new Error(vd.message ?? "Verification failed");
           } catch (e) {
             toast({ variant: "error", title: "Verification failed", description: (e as Error).message });
           }

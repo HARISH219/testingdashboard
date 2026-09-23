@@ -255,6 +255,35 @@ model AuditLog {
 }
 
 // ---------------------------------------------------------------------------
+// Payments (Razorpay one-time payment records)
+// ---------------------------------------------------------------------------
+
+// One row per successfully verified Razorpay payment. `razorpayPaymentId` is
+// UNIQUE so the same payment can never be recorded twice (idempotency) and can
+// never grant premium more than once.
+model Payment {
+  id                String   @id @default(cuid())
+  guildId           String
+  userId            String // internal User.id
+  discordId         String // convenience: the paying Discord user
+  provider          String   @default("razorpay")
+  razorpayOrderId   String
+  razorpayPaymentId String   @unique
+  razorpaySignature String
+  amount            Int // smallest currency unit (paise/cents), from the server-side order
+  currency          String   @default("INR")
+  tier              String // PREMIUM | ENTERPRISE
+  interval          String   @default("monthly")
+  /// created | captured | failed
+  status            String   @default("captured")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([guildId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
 // Platform / admin
 // ---------------------------------------------------------------------------
 
