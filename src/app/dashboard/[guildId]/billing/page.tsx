@@ -11,6 +11,25 @@ import { useToast } from "@/components/ui/toast";
 import { PLANS, PLAN_ORDER, planRank, type PlanTier } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
+// Razorpay Checkout is loaded on demand from their CDN.
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+}
+
 export default function BillingPage() {
   const guild = useGuild();
   const { toast } = useToast();
@@ -49,6 +68,58 @@ export default function BillingPage() {
       toast({ variant: "info", title: "Billing portal", description: d.message });
     } catch (e) {
       toast({ variant: "error", title: "Failed", description: (e as Error).message });
+    } finally { setLoading(null); }
+  };
+
+  // Razorpay checkout: create an order server-side, open the widget, then
+  // verify the signature server-side before anything is granted.
+  const payWithRazorpay = async (tier: PlanTier) => {
+    setLoading(`rzp-${tier}`);
+    try {
+      const r = await fetch(`/api/dashboard/${guild.id}/billing/razorpay/order`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier, interval: yearly ? "yearly" : "monthly" }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error ?? "Could not start checkout");
+      if (!d.configured) {
+        toast({ variant: "info", title: "Razorpay not configured", description: d.message });
+        return;
+      }
+      const ok = await loadRazorpayScript();
+      if (!ok || !window.Razorpay) throw new Error("Could not load Razorpay checkout.");
+
+      const rzp = new window.Razorpay({
+        key: d.keyId,
+        order_id: d.orderId,
+        amount: d.amount,
+        currency: d.currency,
+        name: "Soward",
+        description: `${PLANS[tier].name} plan · ${guild.name}`,
+        theme: { color: "#3B82F6" },
+        handler: async (resp: any) => {
+          try {
+            const v = await fetch(`/api/dashboard/${guild.id}/billing/razorpay/verify`, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: resp.razorpay_order_id,
+                paymentId: resp.razorpay_payment_id,
+                signature: resp.razorpay_signature,
+                tier, interval: yearly ? "yearly" : "monthly",
+              }),
+            });
+            const vd = await v.json();
+            if (!v.ok) throw new Error(vd.error ?? "Verification failed");
+            toast({ variant: "success", title: "Payment successful", description: `You're now on ${PLANS[tier].name}. Reloading…` });
+            setTimeout(() => window.location.reload(), 1200);
+          } catch (e) {
+            toast({ variant: "error", title: "Verification failed", description: (e as Error).message });
+          }
+        },
+      });
+      rzp.open();
+    } catch (e) {
+      toast({ variant: "error", title: "Checkout failed", description: (e as Error).message });
     } finally { setLoading(null); }
   };
 
@@ -107,9 +178,19 @@ export default function BillingPage() {
               ) : tier === "FREE" ? (
                 <Button variant="outline" className="mt-4 w-full" onClick={openPortal}>{isDowngrade ? "Downgrade" : "Select"}</Button>
               ) : (
-                <Button className="mt-4 w-full" onClick={() => checkout(tier)} disabled={loading === tier}>
-                  {loading === tier ? "Redirecting…" : isDowngrade ? "Switch plan" : `Upgrade to ${plan.name}`}
-                </Button>
+                <div className="mt-4 space-y-2">
+                  <Button className="w-full" onClick={() => checkout(tier)} disabled={loading === tier}>
+                    {loading === tier ? "Redirecting…" : isDowngrade ? "Switch plan" : `Upgrade to ${plan.name}`}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => payWithRazorpay(tier)}
+                    disabled={loading === `rzp-${tier}`}
+                  >
+                    {loading === `rzp-${tier}` ? "Starting…" : "Pay with Razorpay"}
+                  </Button>
+                </div>
               )}
               <ul className="mt-6 space-y-2.5">
                 {plan.features.map((f) => (

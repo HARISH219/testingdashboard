@@ -68,6 +68,12 @@ export const env = {
   STRIPE_WEBHOOK_SECRET: pick("STRIPE_WEBHOOK_SECRET"),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pick("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
 
+  // Razorpay — the Key ID is public (used by the checkout widget); the Key
+  // Secret is private and used server-side to create orders and verify payment
+  // signatures. Accept the NEXT_PUBLIC_ alias so the same value works client-side.
+  RAZORPAY_KEY_ID: pick("RAZORPAY_KEY_ID", "NEXT_PUBLIC_RAZORPAY_KEY_ID"),
+  RAZORPAY_KEY_SECRET: pick("RAZORPAY_KEY_SECRET"),
+
   BOT_API_URL: pick("BOT_API_URL"), // internal bot service
   BOT_API_SECRET: pick("BOT_API_SECRET"),
 
@@ -132,6 +138,9 @@ export const DEMO_MODE =
 
 export const HAS_DATABASE = Boolean(env.DATABASE_URL);
 export const HAS_STRIPE = Boolean(env.STRIPE_SECRET_KEY);
+// Razorpay is only usable when BOTH the public Key ID and the private Key
+// Secret are set — the widget needs the ID, order creation needs the secret.
+export const HAS_RAZORPAY = Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
 export const HAS_BOT_API = Boolean(env.BOT_API_URL && env.BOT_API_SECRET);
 
 /** Bot owner — implicit full access everywhere. */
