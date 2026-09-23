@@ -14,7 +14,10 @@ import { cn } from "@/lib/utils";
 // Razorpay Checkout is loaded on demand from their CDN.
 declare global {
   interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: string, handler: (resp: any) => void) => void;
+    };
   }
 }
 
@@ -81,6 +84,13 @@ export default function BillingPage() {
         name: "Soward",
         description: `${PLANS[tier].name} plan · ${guild.name}`,
         theme: { color: "#3B82F6" },
+        // User closed the modal without paying.
+        modal: {
+          ondismiss: () => {
+            toast({ variant: "info", title: "Checkout canceled" });
+            setLoading(null);
+          },
+        },
         handler: async (resp: any) => {
           try {
             const v = await fetch(`/api/dashboard/${guild.id}/billing/razorpay/verify`, {
@@ -100,6 +110,14 @@ export default function BillingPage() {
             toast({ variant: "error", title: "Verification failed", description: (e as Error).message });
           }
         },
+      });
+      // Payment attempted but failed (declined card, etc.).
+      rzp.on("payment.failed", (resp: any) => {
+        toast({
+          variant: "error",
+          title: "Payment failed",
+          description: resp?.error?.description ?? "Your payment could not be completed.",
+        });
       });
       rzp.open();
     } catch (e) {

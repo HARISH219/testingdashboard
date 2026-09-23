@@ -14,8 +14,14 @@ import { PLANS, type PlanTier } from "@/lib/plans";
 const schema = z.object({
   tier: z.enum(["PREMIUM", "ENTERPRISE"]),
   interval: z.enum(["monthly", "yearly"]).default("monthly"),
-  currency: z.string().length(3).default("USD"),
+  // INR by default — Razorpay test accounts are typically INR-only and reject
+  // other currencies. Plan prices are stored in USD and converted below.
+  currency: z.string().length(3).default("INR"),
 });
+
+// Approximate USD→INR rate used to bill INR-only Razorpay accounts. Adjust or
+// move to config if you want live rates.
+const USD_TO_INR = 84;
 
 export async function POST(req: NextRequest, { params }: { params: { guildId: string } }) {
   const authz = await authorizeGuild(params.guildId);
@@ -36,9 +42,15 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
   }
 
   const plan = PLANS[tier as PlanTier];
-  const price = interval === "yearly" ? plan.priceYearly : plan.priceMonthly;
-  // Razorpay expects the amount in the smallest currency unit (paise/cents).
-  const amount = Math.round(price * 100);
+  const priceUsd = interval === "yearly" ? plan.priceYearly : plan.priceMonthly;
+  // Convert to the target currency, then to the smallest unit (paise/cents).
+  const priceInCurrency = currency.toUpperCase() === "INR" ? priceUsd * USD_TO_INR : priceUsd;
+  const amount = Math.round(priceInCurrency * 100);
+
+  // Razorpay requires a minimum of 100 (₹1 / $1) in the smallest unit.
+  if (amount < 100) {
+    return NextResponse.json({ error: "Amount is below the minimum of 100." }, { status: 400 });
+  }
 
   try {
     const order = await createOrder({
@@ -67,7 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
           ? "Razorpay rejected the API credentials. Check that RAZORPAY_KEY_SECRET matches your Key ID (and is set in Vercel)."
           : msg,
       },
-      { status: 500 }
+      // 401 for credential problems, 500 for other Razorpay/API errors.
+      { status: authFailure ? 401 : 500 }
     );
   }
 }
