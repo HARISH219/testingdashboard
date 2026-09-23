@@ -43,22 +43,6 @@ export default function BillingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const checkout = async (tier: PlanTier) => {
-    setLoading(tier);
-    try {
-      const r = await fetch(`/api/dashboard/${guild.id}/billing/checkout`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier, interval: yearly ? "yearly" : "monthly" }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error);
-      if (d.configured && d.url) { window.location.href = d.url; return; }
-      toast({ variant: "info", title: "Stripe not configured", description: d.message });
-    } catch (e) {
-      toast({ variant: "error", title: "Checkout failed", description: (e as Error).message });
-    } finally { setLoading(null); }
-  };
-
   const openPortal = async () => {
     setLoading("portal");
     try {
@@ -178,19 +162,17 @@ export default function BillingPage() {
               ) : tier === "FREE" ? (
                 <Button variant="outline" className="mt-4 w-full" onClick={openPortal}>{isDowngrade ? "Downgrade" : "Select"}</Button>
               ) : (
-                <div className="mt-4 space-y-2">
-                  <Button className="w-full" onClick={() => checkout(tier)} disabled={loading === tier}>
-                    {loading === tier ? "Redirecting…" : isDowngrade ? "Switch plan" : `Upgrade to ${plan.name}`}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => payWithRazorpay(tier)}
-                    disabled={loading === `rzp-${tier}`}
-                  >
-                    {loading === `rzp-${tier}` ? "Starting…" : "Pay with Razorpay"}
-                  </Button>
-                </div>
+                <Button
+                  className="mt-4 w-full"
+                  onClick={() => payWithRazorpay(tier)}
+                  disabled={loading === `rzp-${tier}`}
+                >
+                  {loading === `rzp-${tier}`
+                    ? "Starting…"
+                    : isDowngrade
+                      ? "Switch plan"
+                      : `Upgrade to ${plan.name}`}
+                </Button>
               )}
               <ul className="mt-6 space-y-2.5">
                 {plan.features.map((f) => (

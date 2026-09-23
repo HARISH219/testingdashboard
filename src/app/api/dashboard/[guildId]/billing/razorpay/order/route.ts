@@ -57,6 +57,17 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
       interval,
     });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    const msg = (e as Error).message;
+    // Razorpay returns 401 "authentication failed" when the key id/secret pair
+    // is wrong or the secret is missing. Give an actionable message.
+    const authFailure = /authentication|401|unauthor/i.test(msg);
+    return NextResponse.json(
+      {
+        error: authFailure
+          ? "Razorpay rejected the API credentials. Check that RAZORPAY_KEY_SECRET matches your Key ID (and is set in Vercel)."
+          : msg,
+      },
+      { status: 500 }
+    );
   }
 }
