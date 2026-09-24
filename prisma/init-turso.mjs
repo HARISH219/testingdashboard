@@ -161,6 +161,11 @@ const STATEMENTS = [
     "wonBy" TEXT NOT NULL DEFAULT '[]',
     "createdBy" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "description" TEXT,
+    "embedTemplate" TEXT NOT NULL DEFAULT 'classic',
+    "embedColor" TEXT NOT NULL DEFAULT '#3B82F6',
+    "imageUrl" TEXT,
+    "mentionRoleIds" TEXT NOT NULL DEFAULT '[]',
     CONSTRAINT "Giveaway_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE
   )`,
   `CREATE INDEX IF NOT EXISTS "Giveaway_guildId_idx" ON "Giveaway"("guildId")`,
@@ -280,6 +285,11 @@ const ALTERS = [
   `ALTER TABLE "DashboardRole" ADD COLUMN "icon" TEXT NOT NULL DEFAULT 'Shield'`,
   `ALTER TABLE "DashboardRole" ADD COLUMN "enabled" BOOLEAN NOT NULL DEFAULT true`,
   `ALTER TABLE "DashboardRole" ADD COLUMN "createdBy" TEXT`,
+  `ALTER TABLE "Giveaway" ADD COLUMN "description" TEXT`,
+  `ALTER TABLE "Giveaway" ADD COLUMN "embedTemplate" TEXT NOT NULL DEFAULT 'classic'`,
+  `ALTER TABLE "Giveaway" ADD COLUMN "embedColor" TEXT NOT NULL DEFAULT '#3B82F6'`,
+  `ALTER TABLE "Giveaway" ADD COLUMN "imageUrl" TEXT`,
+  `ALTER TABLE "Giveaway" ADD COLUMN "mentionRoleIds" TEXT NOT NULL DEFAULT '[]'`,
 ];
 let altered = 0;
 for (const stmt of ALTERS) {

@@ -202,6 +202,14 @@ model Giveaway {
   createdBy   String?
   createdAt   DateTime @default(now())
 
+  // Embed customization
+  description   String? // embed description / details
+  embedTemplate String  @default("classic") // template key (see lib/giveaway-templates)
+  embedColor    String  @default("#3B82F6")
+  imageUrl      String? // large embed image (preset or custom URL)
+  /// JSON array of role ids to mention/ping when the giveaway is sent
+  mentionRoleIds String @default("[]")
+
   @@index([guildId])
 }
 
