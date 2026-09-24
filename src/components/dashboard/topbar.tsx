@@ -54,18 +54,20 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-        {/* Bot status: full badge on desktop, a status dot on phones so it is
-            still visible without crowding the bar. */}
-        <Badge variant={guild.botOnline ? "success" : "destructive"} className="hidden sm:flex">
-          <span className={cn("size-1.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-destructive")} />
-          {guild.botOnline ? "Bot online" : "Bot offline"}
+        {/* Live-sync status. "Online" when the bot API is reachable; otherwise
+            a calm neutral "Live sync: off" rather than an alarming red
+            "offline" (the bot itself may be running fine in Discord — this only
+            reflects the optional dashboard↔bot API link). */}
+        <Badge variant={guild.botOnline ? "success" : "secondary"} className="hidden sm:flex">
+          <span className={cn("size-1.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-muted-foreground")} />
+          {guild.botOnline ? "Bot online" : "Live sync: off"}
         </Badge>
         <span
           className="grid size-9 place-items-center sm:hidden"
-          title={guild.botOnline ? "Bot online" : "Bot offline"}
-          aria-label={guild.botOnline ? "Bot online" : "Bot offline"}
+          title={guild.botOnline ? "Bot online" : "Live sync: off"}
+          aria-label={guild.botOnline ? "Bot online" : "Live sync off"}
         >
-          <span className={cn("size-2.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-destructive")} />
+          <span className={cn("size-2.5 rounded-full", guild.botOnline ? "bg-success animate-pulse-glow" : "bg-muted-foreground")} />
         </span>
 
         {/* Notifications */}
@@ -123,7 +125,7 @@ export function Topbar({ onMobileMenu }: { onMobileMenu: () => void }) {
         <div className="space-y-2">
           {[
             { t: "Welcome to Soward", d: "Your dashboard is ready. Explore the modules on the left." },
-            { t: "Bot status", d: guild.botOnline ? "Soward is online and connected." : "Soward appears offline for this server." },
+            { t: "Live sync", d: guild.botOnline ? "Soward is connected to the dashboard." : "Live bot sync is off. Your bot can still run normally in Discord." },
           ].map((n, i) => (
             <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
               <p className="text-sm font-medium text-snow">{n.t}</p>

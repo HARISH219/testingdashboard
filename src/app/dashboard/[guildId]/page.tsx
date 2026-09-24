@@ -54,7 +54,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="Total Members" value={formatNumber(guild.memberCount)} icon={<Users />} delay={0} />
         <StatCard label="Online" value={formatNumber(online)} icon={<Wifi />} tint="text-success" hint="~27% active" delay={0.05} />
-        <StatCard label="Bot Status" value={guild.botOnline ? "Online" : "Offline"} icon={<ShieldCheck />} tint={guild.botOnline ? "text-success" : "text-destructive"} delay={0.1} />
+        <StatCard label="Live Sync" value={guild.botOnline ? "Online" : "Off"} icon={<ShieldCheck />} tint={guild.botOnline ? "text-success" : "text-muted-foreground"} delay={0.1} />
         <StatCard label="Premium Plan" value={plan.name} icon={<Crown />} tint="text-arctic" delay={0.15} />
         <StatCard label="Mod Actions" value="248" icon={<Gavel />} tint="text-ice" hint="last 30 days" delay={0.2} />
         <StatCard label="Music" value="Playing" icon={<Music />} tint="text-arctic" delay={0.25} />
