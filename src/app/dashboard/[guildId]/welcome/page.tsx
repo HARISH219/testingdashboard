@@ -118,9 +118,6 @@ function WelcomeInner() {
                 <Label>Roles for bots</Label>
                 <div className="mt-2"><MultiRoleSelect value={cfg.data.autoRoleBots} onChange={(ids) => cfg.setField("autoRoleBots", ids)} /></div>
               </div>
-              <SettingsRow label="Log channel" description="Log auto role assignments.">
-                <ChannelSelect value={cfg.data.logChannelId} onChange={(id) => cfg.setField("logChannelId", id)} />
-              </SettingsRow>
             </CardContent>
           </Card>
         </div>

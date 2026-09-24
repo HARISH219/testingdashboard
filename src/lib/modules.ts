@@ -295,6 +295,16 @@ export const MODULES: DashboardModule[] = [
     href: "/settings",
   },
   {
+    key: "dashlogs",
+    name: "Dashboard Logs",
+    description: "See who changed settings in the dashboard.",
+    icon: "ScrollText",
+    category: "settings",
+    minPlan: "FREE",
+    commands: [],
+    href: "/logs",
+  },
+  {
     key: "billing",
     name: "Billing",
     description: "Subscription, plan, and invoices.",
