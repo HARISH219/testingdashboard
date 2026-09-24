@@ -85,7 +85,46 @@ export function Sidebar({
                 {items.map((m) => {
                   const locked = !planMeets(guild.tier, m.minPlan);
                   const noAccess = !can(m.key, "view") && m.key !== "billing";
+                  const disabled = locked || noAccess;
                   const active = isActive(m);
+
+                  const iconAndLabel = (
+                    <>
+                      {active && (
+                        <motion.span
+                          layoutId="sidebar-active"
+                          className="absolute left-0 h-5 w-1 rounded-r-full bg-arctic"
+                        />
+                      )}
+                      <ModuleIcon
+                        name={m.icon}
+                        className={cn("size-4 shrink-0", active ? "text-arctic" : "")}
+                      />
+                      {!collapsed && <span className="flex-1 truncate">{m.name}</span>}
+                      {!collapsed && disabled && (
+                        <Lock className="size-3 text-muted-foreground/50" />
+                      )}
+                    </>
+                  );
+
+                  // Disabled features are not clickable — render a static,
+                  // dimmed row instead of a navigable link.
+                  if (disabled) {
+                    return (
+                      <div
+                        key={m.key}
+                        title={locked ? `${m.name} — upgrade to unlock` : `${m.name} — no access`}
+                        aria-disabled="true"
+                        className={cn(
+                          "group relative flex cursor-not-allowed items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-muted-foreground/50",
+                          collapsed && "justify-center"
+                        )}
+                      >
+                        {iconAndLabel}
+                      </div>
+                    );
+                  }
+
                   return (
                     <Link
                       key={m.key}
@@ -99,23 +138,7 @@ export function Sidebar({
                         collapsed && "justify-center"
                       )}
                     >
-                      {active && (
-                        <motion.span
-                          layoutId="sidebar-active"
-                          className="absolute left-0 h-5 w-1 rounded-r-full bg-arctic"
-                        />
-                      )}
-                      <ModuleIcon
-                        name={m.icon}
-                        className={cn("size-4 shrink-0", active ? "text-arctic" : "")}
-                      />
-                      {!collapsed && <span className="flex-1 truncate">{m.name}</span>}
-                      {!collapsed && locked && (
-                        <Lock className="size-3 text-muted-foreground/60" />
-                      )}
-                      {!collapsed && !locked && noAccess && (
-                        <Lock className="size-3 text-muted-foreground/40" />
-                      )}
+                      {iconAndLabel}
                     </Link>
                   );
                 })}

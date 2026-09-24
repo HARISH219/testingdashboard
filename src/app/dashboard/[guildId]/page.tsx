@@ -5,13 +5,18 @@ import { motion } from "framer-motion";
 import {
   Users, Wifi, Crown, Gavel, Music, ShieldCheck, ArrowRight, Zap,
   Ban, VolumeX, AlertTriangle, UserPlus, Activity as ActivityIcon,
+  Sliders, Bot,
 } from "lucide-react";
 import { useGuild } from "@/components/dashboard/guild-context";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
+import { useModuleConfig } from "@/components/dashboard/use-module-config";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input, Label } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { SaveBar } from "@/components/dashboard/save-bar";
 import { PLANS } from "@/lib/plans";
 import { formatNumber, greeting, timeAgo } from "@/lib/utils";
 import { DEMO_MOD_ACTIONS } from "@/lib/demo";
@@ -23,6 +28,105 @@ const modIcon: Record<string, React.ReactNode> = {
   warn: <AlertTriangle className="size-4 text-warning" />,
   kick: <UserPlus className="size-4 rotate-180 text-frost" />,
 };
+
+/**
+ * Server prefix + custom bot (avatar / banner) settings, saved via the real
+ * "settings" module config. Custom bot fields tell the bot which avatar/banner
+ * to use for this server (applied by the bot service when connected).
+ */
+interface ServerBotConfig extends Record<string, unknown> {
+  prefix: string;
+  customBotEnabled: boolean;
+  botAvatarUrl: string;
+  botBannerUrl: string;
+}
+
+const serverBotDefaults: ServerBotConfig = {
+  prefix: "!",
+  customBotEnabled: false,
+  botAvatarUrl: "",
+  botBannerUrl: "",
+};
+
+function ServerBotCard() {
+  const cfg = useModuleConfig<ServerBotConfig>("settings", serverBotDefaults);
+  if (cfg.loading) return null;
+
+  return (
+    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Sliders className="size-4 text-arctic" /> Server settings</CardTitle>
+          <CardDescription>Core configuration for this server.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Command prefix</Label>
+            <Input
+              className="mt-2 max-w-[120px]"
+              value={cfg.data.prefix}
+              onChange={(e) => cfg.setField("prefix", e.target.value)}
+              placeholder="!"
+              maxLength={5}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Used for text commands, e.g. <span className="font-mono">{cfg.data.prefix || "!"}help</span>.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2"><Bot className="size-4 text-arctic" /> Custom bot</CardTitle>
+            <CardDescription>Give Soward a custom avatar and banner for this server.</CardDescription>
+          </div>
+          <Switch checked={cfg.data.customBotEnabled} onCheckedChange={(v) => cfg.setField("customBotEnabled", v)} />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Bot avatar URL</Label>
+            <Input
+              className="mt-2"
+              value={cfg.data.botAvatarUrl}
+              onChange={(e) => cfg.setField("botAvatarUrl", e.target.value)}
+              placeholder="https://…/avatar.png"
+              disabled={!cfg.data.customBotEnabled}
+            />
+          </div>
+          <div>
+            <Label>Bot banner URL</Label>
+            <Input
+              className="mt-2"
+              value={cfg.data.botBannerUrl}
+              onChange={(e) => cfg.setField("botBannerUrl", e.target.value)}
+              placeholder="https://…/banner.png"
+              disabled={!cfg.data.customBotEnabled}
+            />
+          </div>
+          {cfg.data.customBotEnabled && (cfg.data.botAvatarUrl || cfg.data.botBannerUrl) && (
+            <div className="overflow-hidden rounded-xl border border-border">
+              {cfg.data.botBannerUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={cfg.data.botBannerUrl} alt="" className="h-20 w-full object-cover" />
+              )}
+              {cfg.data.botAvatarUrl && (
+                <div className="flex items-center gap-2 p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cfg.data.botAvatarUrl} alt="" className="size-10 rounded-lg" />
+                  <span className="text-sm text-frost">Preview</span>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="lg:col-span-2">
+        <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
+      </div>
+    </div>
+  );
+}
 
 export default function OverviewPage() {
   const guild = useGuild();
@@ -49,6 +153,10 @@ export default function OverviewPage() {
           <Badge variant="warning" className="mt-3">Demo data — connect the bot for live stats</Badge>
         )}
       </motion.div>
+
+      {/* Server & custom bot settings */}
+      <ServerBotCard />
+
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">

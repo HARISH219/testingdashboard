@@ -141,7 +141,15 @@ export function planRank(tier: PlanTier): number {
   return PLAN_ORDER.indexOf(tier);
 }
 
+/**
+ * TEMPORARY: unlock every premium feature for all servers regardless of plan.
+ * Flip this back to `false` to re-enable real plan gating. When true, planMeets
+ * always passes so no module is locked behind a tier.
+ */
+export const TEMP_UNLOCK_ALL = true;
+
 /** Does a plan tier meet or exceed the required tier? */
 export function planMeets(current: PlanTier, required: PlanTier): boolean {
+  if (TEMP_UNLOCK_ALL) return true;
   return planRank(current) >= planRank(required);
 }

@@ -76,6 +76,22 @@ function Inner() {
     setConfig((c) => ({ ...c, actions: { ...c.actions, [key]: { ...c.actions[key], ...changes } } }));
 
   const save = async () => {
+    // Guard: if Antinuke is enabled with any watched action on, at least one
+    // trusted user or role must be configured — otherwise admins (including the
+    // owner) could be punished by their own protection. You can't proceed
+    // without selecting who is trusted.
+    const anyActionOn = Object.values(config.actions).some((a) => a.enabled);
+    const hasTrusted = config.trustedUsers.length > 0 || config.trustedRoles.length > 0;
+    if (enabled && anyActionOn && !hasTrusted) {
+      toast({
+        variant: "warning",
+        title: "Select trusted roles first",
+        description: "Add at least one trusted user or role in the Trusted tab before enabling Antinuke, so your admins aren't punished.",
+      });
+      setTab("trusted");
+      return;
+    }
+
     setSaving(true);
     try {
       const r = await fetch(`/api/dashboard/${guild.id}/antinuke`, {
