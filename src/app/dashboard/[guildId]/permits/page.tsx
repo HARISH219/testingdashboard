@@ -25,6 +25,7 @@ import {
 import { CreatePermitWizard } from "@/components/dashboard/permits/create-permit-wizard";
 import { usePermits, describeActivity, safeJson } from "@/components/dashboard/permits/use-permits";
 import { computeEffective, catalogByCategory, PERMISSION_PRESETS, type Permit } from "@/lib/permits";
+import { TEMP_UNLOCK_ALL } from "@/lib/plans";
 import { timeAgo } from "@/lib/utils";
 
 type Filter = "all" | "active" | "inactive";
@@ -416,7 +417,8 @@ function PermissionGroups() {
 export default function Page() {
   const guild = useGuild();
   // Only owners (wildcard) manage permits — re-checked server-side too.
-  if (!guild.permissions.includes("*")) {
+  // TEMPORARY: TEMP_UNLOCK_ALL opens this for everyone.
+  if (!TEMP_UNLOCK_ALL && !guild.permissions.includes("*")) {
     return <NoAccess module="Permits" />;
   }
   return (

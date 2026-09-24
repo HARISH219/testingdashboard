@@ -27,6 +27,7 @@ import { usePermits, safeJson } from "@/components/dashboard/permits/use-permits
 import {
   PERMIT_ICONS, allConflicts, catalogByCategory, type Permit, type PermState,
 } from "@/lib/permits";
+import { TEMP_UNLOCK_ALL } from "@/lib/plans";
 import { intToHexColor } from "@/lib/utils";
 
 type Draft = {
@@ -481,7 +482,7 @@ function StateTag({ state }: { state: PermState }) {
 
 export default function Page() {
   const guild = useGuild();
-  if (!guild.permissions.includes("*")) return <NoAccess module="Permits" />;
+  if (!TEMP_UNLOCK_ALL && !guild.permissions.includes("*")) return <NoAccess module="Permits" />;
   return (
     <ResourcesProvider>
       <DetailInner />

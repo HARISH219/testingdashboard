@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { PlanTier } from "@/lib/plans";
+import { TEMP_UNLOCK_ALL, type PlanTier } from "@/lib/plans";
 
 export interface GuildContextValue {
   id: string;
@@ -38,6 +38,8 @@ export function useCan() {
   const { permissions } = useGuild();
   return React.useCallback(
     (module: string, action: "view" | "manage" = "view") => {
+      // TEMPORARY: everything unlocked — see TEMP_UNLOCK_ALL in lib/plans.
+      if (TEMP_UNLOCK_ALL) return true;
       if (permissions.includes("*")) return true;
       if (permissions.includes(`${module}:manage`)) return true;
       return permissions.includes(`${module}:${action}`);

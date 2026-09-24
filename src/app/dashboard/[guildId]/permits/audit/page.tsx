@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePermits, describeActivity, type PermitActivity } from "@/components/dashboard/permits/use-permits";
+import { TEMP_UNLOCK_ALL } from "@/lib/plans";
 import { timeAgo } from "@/lib/utils";
 
 type ActionFilter = "all" | "permit.create" | "permit.update" | "permit.delete";
@@ -132,6 +133,6 @@ function AuditRow({ entry }: { entry: PermitActivity }) {
 
 export default function Page() {
   const guild = useGuild();
-  if (!guild.permissions.includes("*")) return <NoAccess module="Permits" />;
+  if (!TEMP_UNLOCK_ALL && !guild.permissions.includes("*")) return <NoAccess module="Permits" />;
   return <AuditInner />;
 }
