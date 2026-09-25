@@ -17,7 +17,6 @@ export default function LoginPage() {
   const { status } = useSession();
   const [loading, setLoading] = React.useState(false);
   const [problem, setProblem] = React.useState<string | null>(null);
-  const [discordReady, setDiscordReady] = React.useState<boolean | null>(null);
   const [redirectUri, setRedirectUri] = React.useState("");
 
   React.useEffect(() => {
@@ -27,27 +26,6 @@ export default function LoginPage() {
   React.useEffect(() => {
     if (status === "authenticated") router.replace("/servers");
   }, [status, router]);
-
-  // Confirm the Discord provider actually exists on this deployment. If the
-  // server is missing NEXTAUTH_SECRET / Discord credentials it falls back to
-  // demo mode, where "discord" is not a registered provider and signIn() would
-  // do nothing at all. Surfacing that here beats a button that silently fails.
-  React.useEffect(() => {
-    fetch("/api/auth/providers")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((providers) => {
-        const ok = Boolean(providers && providers.discord);
-        setDiscordReady(ok);
-        if (!ok) {
-          setProblem(
-            "Discord sign-in isn't configured on this deployment. The server is missing NEXTAUTH_SECRET or the Discord credentials."
-          );
-        }
-      })
-      .catch(() =>
-        setProblem("Couldn't reach the authentication server. Is it running?")
-      );
-  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -120,7 +98,7 @@ export default function LoginPage() {
 
           <Button
             onClick={handleLogin}
-            disabled={loading || discordReady === false}
+            disabled={loading}
             variant="discord"
             size="lg"
             className="mt-6 w-full"
