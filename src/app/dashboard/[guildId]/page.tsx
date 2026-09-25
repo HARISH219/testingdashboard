@@ -195,7 +195,7 @@ export default function OverviewPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              { label: "Antinuke", status: guild.tier === "FREE" ? "Locked" : "Active", ok: guild.tier !== "FREE" },
+              { label: "Antinuke", status: "Active", ok: true },
               { label: "Automod", status: "Active", ok: true },
               { label: "Word filter", status: "Active", ok: true },
               { label: "Raid mode", status: "Standby", ok: true },
