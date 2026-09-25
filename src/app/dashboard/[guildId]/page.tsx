@@ -121,9 +121,6 @@ function ServerBotCard() {
         </CardContent>
       </Card>
 
-      <div className="lg:col-span-2">
-        <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
-      </div>
     </div>
   );
 }
@@ -139,19 +136,27 @@ export default function OverviewPage() {
 
   return (
     <div>
-      {/* Greeting */}
+      {/* Greeting — glass hero banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="glass-strong relative mb-6 overflow-hidden rounded-2xl p-5 sm:p-6"
       >
-        <h1 className="font-display text-2xl font-bold text-snow sm:text-3xl">
-          {greeting()}, {name} ❄️
-        </h1>
-        <p className="mt-1 text-muted-foreground">Here&apos;s what&apos;s happening in {guild.name}.</p>
-        {guild.demo && (
-          <Badge variant="warning" className="mt-3">Demo data — connect the bot for live stats</Badge>
-        )}
+        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-arctic/15 blur-3xl" />
+        <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-snow sm:text-3xl">
+              {greeting()}, {name} <span className="text-arctic">❄️</span>
+            </h1>
+            <p className="mt-1 text-muted-foreground">Here&apos;s what&apos;s happening in {guild.name}.</p>
+            {guild.demo && (
+              <Badge variant="warning" className="mt-3">Demo data — connect the bot for live stats</Badge>
+            )}
+          </div>
+          <Badge variant={guild.tier === "FREE" ? "secondary" : "default"} className="w-fit gap-1.5">
+            <Crown className="size-3.5" /> {plan.name} plan
+          </Badge>
+        </div>
       </motion.div>
 
       {/* Server & custom bot settings */}
