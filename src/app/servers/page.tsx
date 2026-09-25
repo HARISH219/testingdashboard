@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Search, Plus, LogOut, ServerCrash, Check, Stethoscope, Info, RefreshCw } from "lucide-react";
+import { Search, Plus, LogOut, ServerCrash, Check, Info, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Snowfall } from "@/components/snowfall";
 import { GuildIcon } from "@/components/guild-icon";
@@ -65,9 +65,6 @@ export default function ServersPage() {
         <div className="container flex h-16 items-center justify-between">
           <Logo />
           <div className="flex items-center gap-1">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/setup"><Stethoscope className="size-4" /> Setup</Link>
-            </Button>
             <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
               <LogOut className="size-4" /> Sign out
             </Button>
@@ -130,11 +127,8 @@ export default function ServersPage() {
             <ServerCrash className="mx-auto mb-4 size-10 text-destructive" />
             <h3 className="font-semibold text-snow">Couldn&apos;t load your servers</h3>
             <p className="mt-1 break-words text-sm text-muted-foreground">{error}</p>
-            <div className="mt-5 flex justify-center gap-2">
+            <div className="mt-5 flex justify-center">
               <Button onClick={() => location.reload()}>Try again</Button>
-              <Button asChild variant="secondary">
-                <Link href="/setup">Check setup</Link>
-              </Button>
             </div>
           </Card>
         )}

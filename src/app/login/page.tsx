@@ -115,9 +115,6 @@ export default function LoginPage() {
             <div className="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3 text-left text-sm text-warning">
               <p className="font-medium">Can&apos;t sign in</p>
               <p className="mt-1 text-warning/90">{problem}</p>
-              <Link href="/setup" className="mt-2 inline-block underline">
-                Open setup status
-              </Link>
             </div>
           )}
 
@@ -148,13 +145,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-4 text-sm">
+        <div className="mt-6 flex items-center justify-center text-sm">
           <Link href="/" className="text-muted-foreground hover:text-snow">
             ← Back to home
-          </Link>
-          <span className="text-muted-foreground/40">·</span>
-          <Link href="/setup" className="text-muted-foreground hover:text-snow">
-            Setup status
           </Link>
         </div>
       </motion.div>
