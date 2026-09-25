@@ -45,7 +45,7 @@ export function PillTabs({
             {isActive && (
               <motion.span
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full bg-white/[0.06] ring-1 ring-border"
+                className="pointer-events-none absolute inset-0 rounded-full bg-white/[0.06] ring-1 ring-border"
                 transition={{ type: "spring", stiffness: 400, damping: 32 }}
               />
             )}

@@ -59,7 +59,7 @@ export function MarketingHeader() {
                 {active && (
                   <motion.span
                     layoutId="nav-active"
-                    className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-arctic shadow-glow-sm"
+                    className="pointer-events-none absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-arctic shadow-glow-sm"
                   />
                 )}
               </Link>

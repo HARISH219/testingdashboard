@@ -63,7 +63,7 @@ export function PermitTabs({
         const bg = isActive && (
           <motion.span
             layoutId={layoutId}
-            className="absolute inset-0 rounded-lg bg-primary/15 shadow-glow-sm ring-1 ring-arctic/20"
+            className="pointer-events-none absolute inset-0 rounded-lg bg-primary/15 shadow-glow-sm ring-1 ring-arctic/20"
             transition={{ type: "spring", stiffness: 400, damping: 32 }}
           />
         );
