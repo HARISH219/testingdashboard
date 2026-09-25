@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { DEMO_MODE, HAS_DATABASE, isPlatformAdmin } from "./env";
-import { getManageableGuilds, botIsInGuilds } from "./discord";
+import { getManageableGuilds, getUserGuilds, botIsInGuilds } from "./discord";
 import { DEMO_GUILDS } from "./demo";
 import { prisma } from "./db";
 import { hasPermission, type PermissionAction } from "./permissions";
@@ -38,6 +38,8 @@ export interface ManageableGuild {
   permissions: string;
   botInstalled: boolean;
   memberCount: number;
+  /** Whether the user can actually manage this server (owner or MANAGE_GUILD). */
+  manageable?: boolean;
 }
 
 /** Guilds the current user can manage. Always validated server-side. */
@@ -91,6 +93,86 @@ export async function getManageableGuildsForUser(
     memberCount:
       g.approximate_member_count ?? stored[g.id]?.memberCount ?? 0,
   }));
+}
+
+/**
+ * ALL of the user's guilds (not just manageable ones), each flagged with
+ * `manageable` = the user is owner or has MANAGE_GUILD. Sorted so manageable
+ * servers always come first, preserving Discord's original order within each
+ * group. Used by the server-picker so the user's manageable servers surface
+ * at the top while their other servers remain visible below.
+ */
+export async function getAllUserGuildsForUser(
+  user: SessionUser
+): Promise<ManageableGuild[]> {
+  if (DEMO_MODE || !user.accessToken) {
+    return DEMO_GUILDS.map((g) => ({
+      id: g.id, name: g.name, icon: g.icon, owner: g.owner,
+      permissions: g.permissions, botInstalled: g.botInstalled,
+      memberCount: g.memberCount,
+      manageable: g.owner || canManageGuild(g.permissions),
+    }));
+  }
+
+  let guilds;
+  try {
+    guilds = await getUserGuilds(user.accessToken);
+  } catch {
+    return [];
+  }
+
+  const withFlag = guilds.map((g) => ({
+    ...g,
+    // Missing/invalid permission strings are treated as NOT manageable (safe).
+    manageable: Boolean(g.owner) || safeCanManage(g.permissions),
+  }));
+
+  // Only resolve "bot installed" for the guilds the user can manage — those are
+  // the ones that get a Manage/Invite action; a per-guild check on every server
+  // the user is in would be wasteful.
+  const manageableIds = withFlag.filter((g) => g.manageable).map((g) => g.id);
+  const botGuildIds = await botIsInGuilds(manageableIds);
+
+  let stored: Record<string, { botInstalled: boolean; memberCount: number }> = {};
+  if (HAS_DATABASE) {
+    try {
+      const rows = await prisma.guild.findMany({
+        where: { id: { in: withFlag.map((g) => g.id) } },
+        select: { id: true, botInstalled: true, memberCount: true },
+      });
+      stored = Object.fromEntries(
+        rows.map((r) => [r.id, { botInstalled: r.botInstalled, memberCount: r.memberCount }])
+      );
+    } catch {
+      stored = {};
+    }
+  }
+
+  const mapped: ManageableGuild[] = withFlag.map((g) => ({
+    id: g.id,
+    name: g.name,
+    icon: g.icon,
+    owner: Boolean(g.owner),
+    permissions: g.permissions,
+    manageable: g.manageable,
+    botInstalled: botGuildIds.has(g.id) || (stored[g.id]?.botInstalled ?? false),
+    memberCount: g.approximate_member_count ?? stored[g.id]?.memberCount ?? 0,
+  }));
+
+  // Stable partition: manageable first, original order preserved within groups.
+  const manageable = mapped.filter((g) => g.manageable);
+  const rest = mapped.filter((g) => !g.manageable);
+  return [...manageable, ...rest];
+}
+
+/** Never throw on a malformed permissions value — treat it as "cannot manage". */
+function safeCanManage(permissions: string | number | bigint | undefined | null): boolean {
+  if (permissions === undefined || permissions === null || permissions === "") return false;
+  try {
+    return canManageGuild(permissions);
+  } catch {
+    return false;
+  }
 }
 
 /**

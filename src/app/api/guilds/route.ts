@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionUser, getManageableGuildsForUser } from "@/lib/authz";
+import { getSessionUser, getAllUserGuildsForUser } from "@/lib/authz";
 import { DEMO_MODE } from "@/lib/env";
 
 export async function GET() {
@@ -8,7 +8,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const guilds = await getManageableGuildsForUser(user);
+    // Return ALL the user's guilds (manageable flagged + sorted first) so the
+    // server picker can group manageable servers at the top.
+    const guilds = await getAllUserGuildsForUser(user);
     return NextResponse.json({ guilds, demo: DEMO_MODE });
   } catch (e) {
     return NextResponse.json(

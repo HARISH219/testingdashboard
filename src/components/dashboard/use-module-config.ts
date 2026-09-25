@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useToast } from "@/components/ui/toast";
 import { useGuild } from "./guild-context";
+import { useRegisterDirty } from "./dirty-state";
 
 interface ModuleConfigState<T> {
   enabled: boolean;
@@ -32,26 +33,26 @@ export function useModuleConfig<T extends Record<string, unknown>>(
 
   const url = `/api/dashboard/${guild.id}/config/${module}`;
 
-  React.useEffect(() => {
-    let cancelled = false;
-    fetch(url)
+  const load = React.useCallback(() => {
+    setLoading(true);
+    return fetch(url)
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json()).error ?? "Failed to load");
         return r.json();
       })
       .then((json) => {
-        if (cancelled) return;
         const next = { enabled: json.enabled, data: { ...defaults, ...json.data } };
         setState(next);
         setInitial(next);
       })
-      .catch((e) => !cancelled && setError(e.message))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
+
+  React.useEffect(() => {
+    load();
+  }, [load]);
 
   const dirty = initial
     ? JSON.stringify(state) !== JSON.stringify(initial)
@@ -86,6 +87,10 @@ export function useModuleConfig<T extends Record<string, unknown>>(
 
   const reset = () => initial && setState(initial);
 
+  // Register with the global save bar so any module page automatically shows
+  // the floating "unsaved changes" popup without duplicating a save bar.
+  useRegisterDirty({ id: `module:${module}`, dirty, saving, save, reset });
+
   return {
     enabled: state.enabled,
     data: state.data,
@@ -98,5 +103,6 @@ export function useModuleConfig<T extends Record<string, unknown>>(
     setData,
     save,
     reset,
+    reload: load,
   };
 }

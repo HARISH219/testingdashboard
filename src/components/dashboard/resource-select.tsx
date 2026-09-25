@@ -13,26 +13,36 @@ interface ResourcesState {
   channels: GuildChannel[];
   roles: GuildRole[];
   loading: boolean;
+  error: boolean;
 }
 
 const ResourcesCtx = React.createContext<ResourcesState | null>(null);
 
 export function ResourcesProvider({ children }: { children: React.ReactNode }) {
   const guild = useGuild();
-  const [state, setState] = React.useState<ResourcesState>({ channels: [], roles: [], loading: true });
+  const [state, setState] = React.useState<ResourcesState>({ channels: [], roles: [], loading: true, error: false });
 
   React.useEffect(() => {
+    let cancelled = false;
+    setState({ channels: [], roles: [], loading: true, error: false });
     fetch(`/api/dashboard/${guild.id}/resources`)
-      .then((r) => r.json())
-      .then((d) => setState({ channels: d.channels ?? [], roles: d.roles ?? [], loading: false }))
-      .catch(() => setState((s) => ({ ...s, loading: false })));
+      .then(async (r) => {
+        if (!r.ok) throw new Error("Failed");
+        return r.json();
+      })
+      .then((d) => {
+        if (cancelled) return;
+        setState({ channels: d.channels ?? [], roles: d.roles ?? [], loading: false, error: false });
+      })
+      .catch(() => !cancelled && setState({ channels: [], roles: [], loading: false, error: true }));
+    return () => { cancelled = true; };
   }, [guild.id]);
 
   return <ResourcesCtx.Provider value={state}>{children}</ResourcesCtx.Provider>;
 }
 
 export function useResources() {
-  return React.useContext(ResourcesCtx) ?? { channels: [], roles: [], loading: false };
+  return React.useContext(ResourcesCtx) ?? { channels: [], roles: [], loading: false, error: false };
 }
 
 export function ChannelSelect({
@@ -44,11 +54,21 @@ export function ChannelSelect({
   onChange: (id: string) => void;
   type?: "text" | "voice";
 }) {
-  const { channels } = useResources();
+  const { channels, loading, error } = useResources();
+  // Text giveaways/panels post to text (0) or announcement/news (5) channels.
   const filtered = channels.filter((c) => (type === "voice" ? c.type === 2 : c.type === 0 || c.type === 5));
+
+  const placeholder = loading
+    ? "Loading channels…"
+    : error
+      ? "Unable to load channels. Try again."
+      : filtered.length === 0
+        ? "No available channels"
+        : "Select a channel…";
+
   return (
-    <Select value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">Select a channel…</option>
+    <Select value={value} onChange={(e) => onChange(e.target.value)} disabled={loading || error || filtered.length === 0}>
+      <option value="">{placeholder}</option>
       {filtered.map((c) => (
         <option key={c.id} value={c.id}>
           {type === "voice" ? "🔊 " : "# "}{c.name}

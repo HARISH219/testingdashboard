@@ -5,7 +5,7 @@ import { Gift, Plus, Trophy, Clock, RotateCcw, Users, Check, X } from "lucide-re
 import { ModuleGate } from "@/components/dashboard/module-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useGuild } from "@/components/dashboard/guild-context";
-import { ChannelSelect, RoleSelect, MultiRoleSelect } from "@/components/dashboard/resource-select";
+import { ResourcesProvider, ChannelSelect, RoleSelect, MultiRoleSelect } from "@/components/dashboard/resource-select";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -268,5 +268,11 @@ function Inner() {
 }
 
 export default function Page() {
-  return <ModuleGate moduleKey="giveaways"><Inner /></ModuleGate>;
+  return (
+    <ModuleGate moduleKey="giveaways">
+      <ResourcesProvider>
+        <Inner />
+      </ResourcesProvider>
+    </ModuleGate>
+  );
 }

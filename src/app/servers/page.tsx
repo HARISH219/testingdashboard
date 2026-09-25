@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, cn } from "@/lib/utils";
 
 interface Guild {
   id: string;
@@ -23,6 +23,7 @@ interface Guild {
   owner: boolean;
   botInstalled: boolean;
   memberCount: number;
+  manageable?: boolean;
 }
 
 export default function ServersPage() {
@@ -56,6 +57,10 @@ export default function ServersPage() {
   const filtered = guilds?.filter((g) =>
     g.name.toLowerCase().includes(query.toLowerCase())
   );
+  // Group manageable servers first (backend already sorts, but re-group after
+  // client search so the divider stays correct). Missing flag = not manageable.
+  const manageableGuilds = filtered?.filter((g) => g.manageable) ?? [];
+  const otherGuilds = filtered?.filter((g) => !g.manageable) ?? [];
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -165,55 +170,92 @@ export default function ServersPage() {
           </Card>
         )}
 
-        {/* Grid */}
+        {/* Grid — manageable servers first, then the rest below a divider. */}
         {filtered && filtered.length > 0 && (
-          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((g, i) => (
-              <motion.div
-                key={g.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: (i % 6) * 0.05 }}
-              >
-                <Card hover className="flex h-full flex-col p-5">
-                  <div className="flex items-center gap-3">
-                    <GuildIcon id={g.id} name={g.name} icon={g.icon} size={48} />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold text-snow">{g.name}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {formatNumber(g.memberCount)} members
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {g.owner && <Badge variant="secondary">Owner</Badge>}
-                    {g.botInstalled ? (
-                      <Badge variant="success">
-                        <Check className="size-3" /> Soward installed
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Not installed</Badge>
-                    )}
-                  </div>
-                  <div className="mt-auto pt-4">
-                    {g.botInstalled ? (
-                      <Button asChild className="w-full">
-                        <Link href={`/dashboard/${g.id}`}>Manage</Link>
-                      </Button>
-                    ) : (
-                      <Button asChild variant="secondary" className="w-full">
-                        <a href={inviteUrl} target="_blank" rel="noreferrer">
-                          <Plus className="size-4" /> Invite Soward
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+          <div className="mx-auto max-w-4xl space-y-6">
+            {manageableGuilds.length > 0 && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {manageableGuilds.map((g, i) => (
+                  <ServerCard key={g.id} g={g} i={i} inviteUrl={inviteUrl} />
+                ))}
+              </div>
+            )}
+
+            {otherGuilds.length > 0 && (
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-white/[0.08]" />
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Other servers
+                  </span>
+                  <span className="h-px flex-1 bg-white/[0.08]" />
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {otherGuilds.map((g, i) => (
+                    <ServerCard key={g.id} g={g} i={i} inviteUrl={inviteUrl} />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+/**
+ * A single server card. Same design across both groups. Manageable servers get
+ * Manage / Invite Soward actions; non-manageable ones show a subtle read-only
+ * state (the user can't manage or invite there).
+ */
+function ServerCard({ g, i, inviteUrl }: { g: Guild; i: number; inviteUrl: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: (i % 6) * 0.05 }}
+    >
+      <Card hover className={cn("flex h-full flex-col p-5", !g.manageable && "opacity-75")}>
+        <div className="flex items-center gap-3">
+          <GuildIcon id={g.id} name={g.name} icon={g.icon} size={48} />
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-semibold text-snow">{g.name}</h3>
+            <p className="text-xs text-muted-foreground">
+              {formatNumber(g.memberCount)} members
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {g.owner && <Badge variant="secondary">Owner</Badge>}
+          {g.manageable && g.botInstalled ? (
+            <Badge variant="success">
+              <Check className="size-3" /> Soward installed
+            </Badge>
+          ) : g.manageable ? (
+            <Badge variant="outline">Not installed</Badge>
+          ) : (
+            <Badge variant="outline">No access</Badge>
+          )}
+        </div>
+        <div className="mt-auto pt-4">
+          {!g.manageable ? (
+            <Button variant="secondary" className="w-full" disabled title="You don't have permission to manage this server">
+              Can&apos;t manage
+            </Button>
+          ) : g.botInstalled ? (
+            <Button asChild className="w-full">
+              <Link href={`/dashboard/${g.id}`}>Manage</Link>
+            </Button>
+          ) : (
+            <Button asChild variant="secondary" className="w-full">
+              <a href={inviteUrl} target="_blank" rel="noreferrer">
+                <Plus className="size-4" /> Invite Soward
+              </a>
+            </Button>
+          )}
+        </div>
+      </Card>
+    </motion.div>
   );
 }
