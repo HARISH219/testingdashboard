@@ -34,7 +34,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-white/[0.06] bg-navy/40 backdrop-blur-xl transition-all duration-300 md:flex",
+        "sticky top-0 z-20 hidden h-screen shrink-0 flex-col border-r border-white/[0.06] bg-navy/40 backdrop-blur-xl transition-all duration-300 md:flex",
         collapsed ? "w-[76px]" : "w-64"
       )}
     >
@@ -72,7 +72,7 @@ export function Sidebar({
         )}
       </Link>
 
-      <nav className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-3 py-2">
+      <nav className="no-scrollbar relative z-10 flex-1 space-y-4 overflow-y-auto px-3 py-2">
         {SIDEBAR_GROUPS.map((group) => {
           const items = MODULES.filter((m) => group.categories.includes(m.category));
           if (items.length === 0) return null;
@@ -87,15 +87,37 @@ export function Sidebar({
                 {items.map((m) => {
                   const locked = !planMeets(guild.tier, m.minPlan);
                   const noAccess = !can(m.key, "view") && m.key !== "billing";
-                  const disabled = locked || noAccess;
+                  // A restricted module still navigates to its page (which shows
+                  // an upgrade / no-access state). We only dim it and show a lock
+                  // hint — never render a dead, unclickable row.
+                  const restricted = locked || noAccess;
                   const active = isActive(m);
 
-                  const iconAndLabel = (
-                    <>
+                  return (
+                    <Link
+                      key={m.key}
+                      href={base + m.href}
+                      title={
+                        restricted
+                          ? locked
+                            ? `${m.name} — upgrade to unlock`
+                            : `${m.name} — limited access`
+                          : m.name
+                      }
+                      className={cn(
+                        "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors",
+                        active
+                          ? "bg-primary/15 text-snow"
+                          : restricted
+                            ? "text-muted-foreground/60 hover:bg-white/[0.04] hover:text-frost"
+                            : "text-frost hover:bg-white/[0.05] hover:text-snow",
+                        collapsed && "justify-center"
+                      )}
+                    >
                       {active && (
                         <motion.span
                           layoutId="sidebar-active"
-                          className="absolute left-0 h-5 w-1 rounded-r-full bg-arctic"
+                          className="pointer-events-none absolute left-0 h-5 w-1 rounded-r-full bg-arctic"
                         />
                       )}
                       <ModuleIcon
@@ -103,44 +125,9 @@ export function Sidebar({
                         className={cn("size-4 shrink-0", active ? "text-arctic" : "")}
                       />
                       {!collapsed && <span className="flex-1 truncate">{m.name}</span>}
-                      {!collapsed && disabled && (
+                      {!collapsed && restricted && (
                         <Lock className="size-3 text-muted-foreground/50" />
                       )}
-                    </>
-                  );
-
-                  // Disabled features are not clickable — render a static,
-                  // dimmed row instead of a navigable link.
-                  if (disabled) {
-                    return (
-                      <div
-                        key={m.key}
-                        title={locked ? `${m.name} — upgrade to unlock` : `${m.name} — no access`}
-                        aria-disabled="true"
-                        className={cn(
-                          "group relative flex cursor-not-allowed items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-muted-foreground/50",
-                          collapsed && "justify-center"
-                        )}
-                      >
-                        {iconAndLabel}
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <Link
-                      key={m.key}
-                      href={base + m.href}
-                      title={m.name}
-                      className={cn(
-                        "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors",
-                        active
-                          ? "bg-primary/15 text-snow"
-                          : "text-frost hover:bg-white/[0.05] hover:text-snow",
-                        collapsed && "justify-center"
-                      )}
-                    >
-                      {iconAndLabel}
                     </Link>
                   );
                 })}
