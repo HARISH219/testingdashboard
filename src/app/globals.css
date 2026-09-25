@@ -96,11 +96,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     overflow-x: hidden;
-    /* Very subtle dark gradient — no bright glow. Keeps the near-black,
-       serious security-product feel described in the design system. */
+    /* Cosmic backdrop — deep navy/black with subtle blue nebula glows around
+       the edges. The centre stays dark so content/typography reads cleanly.
+       This is the static base; the animated stars/particles live in the
+       global <CosmicBackground /> component mounted once in providers. */
+    background-color: hsl(var(--background));
     background-image:
-      radial-gradient(1100px 700px at 15% -10%, hsl(217 60% 20% / 0.06), transparent 60%),
-      radial-gradient(1000px 700px at 95% 0%, hsl(240 10% 12% / 0.35), transparent 55%);
+      radial-gradient(1200px 800px at 12% -8%, hsl(217 90% 55% / 0.10), transparent 55%),
+      radial-gradient(1000px 700px at 92% 4%, hsl(199 90% 55% / 0.08), transparent 55%),
+      radial-gradient(1100px 900px at 50% 118%, hsl(224 80% 45% / 0.10), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -130,20 +134,33 @@
 }
 
 @layer components {
-  /* Card surface — near-black with a thin dark-gray border and minimal blur.
-     Deliberately restrained: no heavy glass or glow (see design system). */
+  /* Cosmic glassmorphism — translucent surface, blue-tinted border, blur.
+     Used across every page for panels/cards so the whole app feels unified. */
   .glass {
-    @apply bg-card/80 backdrop-blur-md border border-border shadow-glass;
+    @apply border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl shadow-glass;
   }
   .glass-strong {
-    @apply bg-popover/90 backdrop-blur-lg border border-border shadow-glass;
+    @apply border border-white/[0.10] bg-white/[0.055] backdrop-blur-2xl shadow-glass;
   }
   .glass-hover {
-    @apply transition-colors duration-200 hover:bg-white/[0.03] hover:border-white/[0.12];
+    @apply transition-all duration-200 hover:border-arctic/25 hover:bg-white/[0.06] hover:shadow-glow-sm;
   }
 
   .frost-border {
     @apply border border-white/[0.08];
+  }
+
+  /* Floating glass pill (navbar). */
+  .glass-pill {
+    @apply border border-white/[0.10] bg-navy/40 backdrop-blur-2xl shadow-glass;
+  }
+
+  /* Soft blue glow ring for primary CTAs. */
+  .glow-btn {
+    box-shadow: 0 0 0 1px hsl(var(--arctic) / 0.25), 0 8px 30px hsl(var(--arctic) / 0.35);
+  }
+  .glow-btn:hover {
+    box-shadow: 0 0 0 1px hsl(var(--arctic) / 0.4), 0 12px 40px hsl(var(--arctic) / 0.5);
   }
 
   /* Gradient text */
@@ -184,5 +201,56 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Slow orbital-line drift for the cosmic background. */
+  .animate-orbit {
+    animation: orbit-spin 90s linear infinite;
+  }
+  /* Subtle glow pulse for the hero badge. */
+  .animate-badge-glow {
+    animation: badge-glow 4s ease-in-out infinite;
+  }
+  /* Animated shine sweep across a primary button. */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.25) 50%,
+      transparent 70%
+    );
+    transform: translateX(-120%);
+    animation: btn-shine 5s ease-in-out infinite;
+  }
+}
+
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 0 1px hsl(var(--arctic) / 0.15), 0 0 18px hsl(var(--arctic) / 0.12); }
+  50% { box-shadow: 0 0 0 1px hsl(var(--arctic) / 0.3), 0 0 28px hsl(var(--arctic) / 0.28); }
+}
+@keyframes btn-shine {
+  0%, 60% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+/* Respect reduced motion globally for the cosmic effects. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-orbit,
+  .animate-badge-glow,
+  .btn-shine::after,
+  .animate-float,
+  .animate-pulse-glow {
+    animation: none !important;
   }
 }
