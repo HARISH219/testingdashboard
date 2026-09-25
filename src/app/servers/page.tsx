@@ -57,10 +57,15 @@ export default function ServersPage() {
   const filtered = guilds?.filter((g) =>
     g.name.toLowerCase().includes(query.toLowerCase())
   );
-  // Group manageable servers first (backend already sorts, but re-group after
-  // client search so the divider stays correct). Missing flag = not manageable.
-  const manageableGuilds = filtered?.filter((g) => g.manageable) ?? [];
-  const otherGuilds = filtered?.filter((g) => !g.manageable) ?? [];
+  // Priority order (stable within each tier so we never randomly reorder):
+  //   1. Manageable + Soward installed  → the "Manage" servers you actually use
+  //   2. Manageable + not installed      → "Invite Soward"
+  //   3. Everything else (no access)
+  const rank = (g: Guild) => (g.manageable && g.botInstalled ? 0 : g.manageable ? 1 : 2);
+  const sorted = filtered ? [...filtered].sort((a, b) => rank(a) - rank(b)) : undefined;
+  // Manageable = tiers 0 + 1 (shown at top); everything else below the divider.
+  const manageableGuilds = sorted?.filter((g) => g.manageable) ?? [];
+  const otherGuilds = sorted?.filter((g) => !g.manageable) ?? [];
 
   return (
     <div className="relative min-h-screen overflow-hidden">
