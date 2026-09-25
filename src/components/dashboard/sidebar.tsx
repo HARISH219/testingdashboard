@@ -39,7 +39,9 @@ export function Sidebar({
       )}
     >
       <div className="flex h-16 items-center justify-between px-4">
-        {collapsed ? <Logo size="sm" showText={false} /> : <Logo />}
+        <Link href="/" aria-label="Soward home" className="rounded-lg transition-opacity hover:opacity-80">
+          {collapsed ? <Logo size="sm" showText={false} /> : <Logo />}
+        </Link>
         <button
           onClick={onToggle}
           className="rounded-lg p-1.5 text-muted-foreground hover:bg-white/[0.06] hover:text-snow"

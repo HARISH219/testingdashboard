@@ -36,7 +36,9 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
             className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-white/10 bg-navy"
           >
             <div className="flex h-16 items-center justify-between px-4">
-              <Logo />
+              <Link href="/" aria-label="Soward home" onClick={onClose} className="rounded-lg transition-opacity hover:opacity-80">
+                <Logo />
+              </Link>
               <button onClick={onClose} className="rounded-lg p-2 text-frost hover:bg-white/[0.06]" aria-label="Close menu">
                 <X className="size-5" />
               </button>

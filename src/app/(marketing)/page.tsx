@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Crown, LayoutDashboard, BookOpenText } from "lucide-react";
+import { ArrowRight, Crown, LayoutDashboard, BookOpenText, ShieldCheck, Zap, Sparkles } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { FeatureGrid } from "@/components/marketing/feature-grid";
@@ -18,7 +18,12 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative z-10">
-        <div className="container flex flex-col items-center pb-16 pt-14 text-center md:pt-24">
+        {/* Cinematic aura behind the headline */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-0 flex justify-center overflow-hidden">
+          <div className="mt-[-6rem] size-[46rem] rounded-full bg-[radial-gradient(circle,_rgba(59,130,246,0.18),_transparent_60%)] blur-2xl" />
+        </div>
+
+        <div className="container relative flex min-h-[88vh] flex-col items-center justify-center pb-16 pt-24 text-center md:min-h-[92vh]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -34,11 +39,11 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mx-auto mt-7 max-w-4xl font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-snow sm:text-6xl md:text-7xl"
+            className="mx-auto mt-7 max-w-4xl font-display text-5xl font-extrabold leading-[1.03] tracking-tight text-snow sm:text-6xl md:text-8xl"
           >
             Your Discord server,
             <br />
-            <span className="text-gradient-arctic drop-shadow-[0_0_25px_rgba(59,130,246,0.35)]">
+            <span className="text-gradient-arctic drop-shadow-[0_0_35px_rgba(59,130,246,0.45)]">
               beautifully under control.
             </span>
           </motion.h1>
@@ -74,11 +79,46 @@ export default function LandingPage() {
             </Button>
           </motion.div>
 
+          {/* Trust row */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground"
+          >
+            {[
+              { icon: ShieldCheck, label: "Anti-nuke security" },
+              { icon: Zap, label: "Instant setup" },
+              { icon: Sparkles, label: "20+ modules" },
+            ].map(({ icon: Icon, label }) => (
+              <span key={label} className="inline-flex items-center gap-2">
+                <Icon className="size-4 text-arctic" /> {label}
+              </span>
+            ))}
+          </motion.div>
+
+          {/* Scroll cue */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="mt-16 hidden md:block"
+          >
+            <span className="mx-auto flex h-9 w-6 items-start justify-center rounded-full border border-white/15 p-1.5">
+              <span className="size-1.5 animate-bounce rounded-full bg-arctic" />
+            </span>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Dashboard preview */}
+      <section className="relative z-10 pb-8">
+        <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
-            className="mt-16 w-full"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6 }}
           >
             <DashboardPreview />
           </motion.div>
