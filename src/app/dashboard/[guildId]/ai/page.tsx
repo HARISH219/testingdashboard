@@ -4,7 +4,6 @@ import { Brain, Image as ImageIcon, Sparkles } from "lucide-react";
 import { ModuleGate } from "@/components/dashboard/module-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { SettingsRow } from "@/components/dashboard/settings-row";
-import { SaveBar } from "@/components/dashboard/save-bar";
 import { useModuleConfig } from "@/components/dashboard/use-module-config";
 import { useGuild } from "@/components/dashboard/guild-context";
 import { ChannelSelect } from "@/components/dashboard/resource-select";
@@ -89,7 +88,6 @@ function Inner() {
           </Card>
         </div>
       </div>
-      <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
     </div>
   );
 }

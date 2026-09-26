@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { SaveBar } from "@/components/dashboard/save-bar";
 import { PLANS } from "@/lib/plans";
 import { formatNumber, greeting, timeAgo } from "@/lib/utils";
 import { DEMO_MOD_ACTIONS } from "@/lib/demo";

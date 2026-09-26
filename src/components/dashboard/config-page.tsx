@@ -3,7 +3,6 @@
 import { ModuleGate } from "./module-gate";
 import { PageHeader } from "./page-header";
 import { SettingsRow } from "./settings-row";
-import { SaveBar } from "./save-bar";
 import { useModuleConfig } from "./use-module-config";
 import { ModuleIcon } from "./module-icon";
 import { ChannelSelect, RoleSelect, MultiRoleSelect } from "./resource-select";
@@ -155,7 +154,6 @@ export function ConfigPage({
               </div>
             )}
           </div>
-          <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
         </div>
       )}
     </ModuleGate>

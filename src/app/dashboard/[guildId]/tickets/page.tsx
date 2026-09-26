@@ -5,7 +5,6 @@ import { Ticket, Send, MessageSquare, CheckCircle2, UserCheck } from "lucide-rea
 import { ModuleGate } from "@/components/dashboard/module-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { SettingsRow } from "@/components/dashboard/settings-row";
-import { SaveBar } from "@/components/dashboard/save-bar";
 import { useModuleConfig } from "@/components/dashboard/use-module-config";
 import { useGuild } from "@/components/dashboard/guild-context";
 import { ChannelSelect, MultiRoleSelect } from "@/components/dashboard/resource-select";
@@ -162,8 +161,6 @@ function Inner() {
           </CardContent>
         </Card>
       </div>
-
-      <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
 
       <ConfirmDialog
         open={confirmRedeploy}

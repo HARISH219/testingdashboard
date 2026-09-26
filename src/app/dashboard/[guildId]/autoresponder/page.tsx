@@ -4,7 +4,6 @@ import * as React from "react";
 import { MessagesSquare, Plus, Trash2 } from "lucide-react";
 import { ModuleGate } from "@/components/dashboard/module-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { SaveBar } from "@/components/dashboard/save-bar";
 import { useModuleConfig } from "@/components/dashboard/use-module-config";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -81,7 +80,6 @@ function Inner() {
           </CardContent>
         </Card>
       </div>
-      <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
     </div>
   );
 }

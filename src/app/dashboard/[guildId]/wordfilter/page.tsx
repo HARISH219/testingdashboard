@@ -5,7 +5,6 @@ import { Filter } from "lucide-react";
 import { ModuleGate } from "@/components/dashboard/module-gate";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { SettingsRow } from "@/components/dashboard/settings-row";
-import { SaveBar } from "@/components/dashboard/save-bar";
 import { useModuleConfig } from "@/components/dashboard/use-module-config";
 import { MultiRoleSelect } from "@/components/dashboard/resource-select";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -69,7 +68,6 @@ function Inner() {
           </CardContent>
         </Card>
       </div>
-      <SaveBar dirty={cfg.dirty} saving={cfg.saving} onSave={cfg.save} onReset={cfg.reset} />
     </div>
   );
 }

@@ -11,6 +11,30 @@ interface ModuleConfigState<T> {
 }
 
 /**
+ * Deterministic JSON serialization with recursively sorted object keys.
+ * Two values that are deeply equal always produce the same string regardless
+ * of key insertion order, so dirty detection never triggers just because the
+ * backend returned fields in a different order than our defaults.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value) ?? "null";
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((v) => stableStringify(v)).join(",")}]`;
+  }
+  const keys = Object.keys(value as Record<string, unknown>).sort();
+  const body = keys
+    .map((k) => `${JSON.stringify(k)}:${stableStringify((value as Record<string, unknown>)[k])}`)
+    .join(",");
+  return `{${body}}`;
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  return stableStringify(a) === stableStringify(b);
+}
+
+/**
  * Loads and persists a module's configuration through the real config API.
  * Tracks dirty state so a save bar can be shown. Not a fake toggle — every
  * save hits /api/dashboard/[guildId]/config/[module] which writes to the DB
@@ -59,9 +83,10 @@ export function useModuleConfig<T extends Record<string, unknown>>(
     load();
   }, [load]);
 
-  const dirty = initial
-    ? JSON.stringify(state) !== JSON.stringify(initial)
-    : false;
+  // Order-independent comparison: only truly changed values mark the surface
+  // dirty. Never falsely dirty on initial load or backend refresh, even if key
+  // ordering differs between the response and our defaults.
+  const dirty = initial ? !deepEqual(state, initial) : false;
 
   const setEnabled = React.useCallback(
     (enabled: boolean) => setState((current) => ({ ...current, enabled })),
