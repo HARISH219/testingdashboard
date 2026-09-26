@@ -30,6 +30,8 @@ export function useModuleConfig<T extends Record<string, unknown>>(
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const defaultsRef = React.useRef(defaults);
+  defaultsRef.current = defaults;
 
   const url = `/api/dashboard/${guild.id}/config/${module}`;
 
@@ -41,13 +43,16 @@ export function useModuleConfig<T extends Record<string, unknown>>(
         return r.json();
       })
       .then((json) => {
-        const next = { enabled: json.enabled, data: { ...defaults, ...json.data } };
+        const next = {
+          enabled: json.enabled,
+          data: { ...defaultsRef.current, ...json.data },
+        };
         setState(next);
         setInitial(next);
+        setError(null);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
   React.useEffect(() => {
@@ -58,13 +63,28 @@ export function useModuleConfig<T extends Record<string, unknown>>(
     ? JSON.stringify(state) !== JSON.stringify(initial)
     : false;
 
-  const setEnabled = (enabled: boolean) => setState((s) => ({ ...s, enabled }));
-  const setField = <K extends keyof T>(key: K, value: T[K]) =>
-    setState((s) => ({ ...s, data: { ...s.data, [key]: value } }));
-  const setData = (patch: Partial<T>) =>
-    setState((s) => ({ ...s, data: { ...s.data, ...patch } }));
+  const setEnabled = React.useCallback(
+    (enabled: boolean) => setState((current) => ({ ...current, enabled })),
+    []
+  );
+  const setField = React.useCallback(
+    <K extends keyof T>(key: K, value: T[K]) =>
+      setState((current) => ({
+        ...current,
+        data: { ...current.data, [key]: value },
+      })),
+    []
+  );
+  const setData = React.useCallback(
+    (patch: Partial<T>) =>
+      setState((current) => ({
+        ...current,
+        data: { ...current.data, ...patch },
+      })),
+    []
+  );
 
-  const save = async () => {
+  const save = React.useCallback(async () => {
     setSaving(true);
     try {
       const r = await fetch(url, {
@@ -74,18 +94,33 @@ export function useModuleConfig<T extends Record<string, unknown>>(
       });
       if (!r.ok) throw new Error((await r.json()).error ?? "Save failed");
       const json = await r.json();
-      const next = { enabled: json.enabled, data: { ...defaults, ...json.data } };
+      const next = {
+        enabled: json.enabled,
+        data: { ...defaultsRef.current, ...json.data },
+      };
       setState(next);
       setInitial(next);
-      toast({ variant: "success", title: "Settings saved", description: json.pending ? "Saved. Bot sync pending integration." : "Your changes are live." });
+      toast({
+        variant: "success",
+        title: "Settings saved",
+        description: json.pending
+          ? "Saved. Bot sync pending integration."
+          : "Your changes are live.",
+      });
     } catch (e) {
-      toast({ variant: "error", title: "Save failed", description: (e as Error).message });
+      toast({
+        variant: "error",
+        title: "Save failed",
+        description: (e as Error).message,
+      });
     } finally {
       setSaving(false);
     }
-  };
+  }, [state, toast, url]);
 
-  const reset = () => initial && setState(initial);
+  const reset = React.useCallback(() => {
+    if (initial) setState(initial);
+  }, [initial]);
 
   // Register with the global save bar so any module page automatically shows
   // the floating "unsaved changes" popup without duplicating a save bar.
