@@ -97,12 +97,18 @@ export function Sidebar({
                     <Link
                       key={m.key}
                       href={base + m.href}
+                      // Only set a tooltip when it adds information: when the
+                      // sidebar is collapsed (icon-only) or the module is
+                      // restricted. Otherwise the label is already visible, so
+                      // no redundant hover tooltip.
                       title={
                         restricted
                           ? locked
                             ? `${m.name} — upgrade to unlock`
                             : `${m.name} — limited access`
-                          : m.name
+                          : collapsed
+                            ? m.name
+                            : undefined
                       }
                       className={cn(
                         "group relative flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm transition-colors",
