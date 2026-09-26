@@ -74,7 +74,7 @@ export function Sidebar({
 
       <nav className="no-scrollbar relative z-10 flex-1 space-y-4 overflow-y-auto px-3 py-2">
         {SIDEBAR_GROUPS.map((group) => {
-          const items = MODULES.filter((m) => group.categories.includes(m.category));
+          const items = MODULES.filter((m) => group.categories.includes(m.category) && !m.hidden);
           if (items.length === 0) return null;
           return (
             <div key={group.label}>

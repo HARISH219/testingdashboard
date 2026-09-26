@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { HAS_DATABASE } from "@/lib/env";
 import { encodeJson } from "@/lib/json-fields";
 import { PLANS, type PlanTier } from "@/lib/plans";
+import { notifyPremiumActivated } from "@/lib/premium-notify";
 
 /**
  * Verify a Razorpay Checkout success payload and activate the subscription.
@@ -168,6 +169,19 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
     ]);
 
     logPayment({ userId: authz.user.discordId, orderId, paymentId, amount, tier, result: "recorded", stage: "database" });
+
+    // Notify the internal Soward channel — ONLY after verified activation was
+    // recorded. Idempotent + non-blocking (never fails the response).
+    await notifyPremiumActivated({
+      eventId: paymentId,
+      guildId: params.guildId,
+      guildName: authz.guild.name,
+      tier,
+      interval,
+      activatedByTag: authz.user.username,
+      activatedById: authz.user.discordId,
+    });
+
     return NextResponse.json({ success: true, tier });
   } catch (e) {
     const raw = (e as Error).message ?? "";

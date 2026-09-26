@@ -24,15 +24,37 @@ import { HAS_BOT_API } from "@/lib/env";
 const MODULE = "tickets";
 
 const defaults = {
-  categoryChannelId: "",
-  supportRoles: [] as string[],
-  panelTitle: "Need help?",
+  // Panel embed
+  panelTitle: "Need Help?",
   panelDescription: "Click the button below to open a support ticket.",
+  panelColor: "#3B82F6",
+  panelThumbnail: "",
+  panelImageUrl: "",
+  panelFooter: "Powered by Soward",
+  panelFooterIcon: "",
+  panelAuthor: "",
+  panelAuthorIcon: "",
+  // Panel button
+  buttonText: "Open a Ticket",
+  buttonEmoji: "🎫",
+  buttonStyle: "primary", // primary | secondary | success | danger
+  // Deployment
   panelChannelId: "",
   panelMessageId: "",
-  panelImageUrl: "",
+  // Ticket configuration
+  categoryChannelId: "",
+  supportRoles: [] as string[],
+  staffRoles: [] as string[],
+  maxOpen: 1,
+  claimSystem: true,
+  autoClose: false,
+  autoCloseHours: 48,
+  closeConfirmation: true,
+  namingFormat: "ticket-{number}",
+  // Transcripts
   transcripts: true,
   transcriptChannelId: "",
+  // legacy alias kept for back-compat with older stored data
   allowMultiple: false,
 };
 
@@ -95,12 +117,28 @@ export async function POST(req: NextRequest, { params }: { params: { guildId: st
       channelId,
       categoryChannelId: cfg.categoryChannelId,
       supportRoles: cfg.supportRoles,
-      title: cfg.panelTitle,
-      description: cfg.panelDescription,
-      imageUrl: cfg.panelImageUrl,
+      staffRoles: cfg.staffRoles,
+      embed: {
+        title: cfg.panelTitle,
+        description: cfg.panelDescription,
+        color: cfg.panelColor,
+        thumbnail: cfg.panelThumbnail,
+        image: cfg.panelImageUrl,
+        footer: cfg.panelFooter,
+        footerIcon: cfg.panelFooterIcon,
+        author: cfg.panelAuthor,
+        authorIcon: cfg.panelAuthorIcon,
+      },
+      button: {
+        text: cfg.buttonText,
+        emoji: cfg.buttonEmoji,
+        style: cfg.buttonStyle,
+      },
+      claimSystem: cfg.claimSystem,
+      maxOpen: cfg.maxOpen,
+      namingFormat: cfg.namingFormat,
       transcripts: cfg.transcripts,
       transcriptChannelId: cfg.transcriptChannelId,
-      allowMultiple: cfg.allowMultiple,
       redeploy: parsed.data.redeploy ?? false,
     });
 

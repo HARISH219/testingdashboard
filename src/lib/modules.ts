@@ -1,19 +1,22 @@
 import type { PlanTier } from "./plans";
 
 /**
- * Snowy dashboard modules — derived from the bot command list.
- * Each module maps to a dashboard page and a set of underlying bot commands.
- * `minPlan` gates the module behind a subscription tier.
- * `permissionKey` is used by the distributed-roles permission system.
+ * Soward dashboard modules — single source of truth for pages, sidebar nav,
+ * icons, categories, and plan gating. Each module maps to a dashboard page and
+ * a set of underlying bot commands. `minPlan` gates the module behind a tier.
+ *
+ * The sidebar and mobile drawer render purely from MODULES + SIDEBAR_GROUPS,
+ * so structure changes here propagate everywhere. Music, AI, Fun and Lavalink
+ * were intentionally removed — do not re-add them without a real backend.
  */
 
 export type ModuleCategory =
   | "overview"
   | "moderation"
   | "security"
-  | "automation"
   | "community"
-  | "music"
+  | "automation"
+  | "voice"
   | "utility"
   | "settings";
 
@@ -26,6 +29,10 @@ export interface DashboardModule {
   minPlan: PlanTier;
   commands: string[];
   href: string; // relative to /dashboard/[guildId]
+  /** Hidden from the sidebar (e.g. sub-pages reached from a parent page). */
+  hidden?: boolean;
+  /** Key of the parent module, for breadcrumbs / grouping of sub-pages. */
+  parent?: string;
 }
 
 export const MODULES: DashboardModule[] = [
@@ -39,6 +46,8 @@ export const MODULES: DashboardModule[] = [
     commands: ["stats"],
     href: "",
   },
+
+  /* ----------------------------- Moderation ----------------------------- */
   {
     key: "moderation",
     name: "Moderation",
@@ -56,8 +65,8 @@ export const MODULES: DashboardModule[] = [
   },
   {
     key: "automod",
-    name: "Automod",
-    description: "Automatic moderation, raid mode, and punishments.",
+    name: "AutoMod",
+    description: "Advanced automatic moderation and protection modules.",
     icon: "Bot",
     category: "moderation",
     minPlan: "FREE",
@@ -69,7 +78,7 @@ export const MODULES: DashboardModule[] = [
     name: "Antinuke",
     description: "Server protection, whitelists, and extra owners.",
     icon: "Lock",
-    category: "security",
+    category: "moderation",
     minPlan: "FREE",
     commands: ["antinuke", "whitelist", "unwhitelist", "whitelisted", "extraowner"],
     href: "/antinuke",
@@ -79,11 +88,37 @@ export const MODULES: DashboardModule[] = [
     name: "Word Filter",
     description: "Blacklist words, bypasses, punishments, and violations.",
     icon: "Filter",
-    category: "security",
+    category: "moderation",
     minPlan: "FREE",
     commands: ["blacklistword", "blacklistword add", "blacklistword remove", "blacklistword punishment", "blacklistword config"],
     href: "/wordfilter",
   },
+
+  /* ------------------------------ Tickets ------------------------------- */
+  {
+    key: "tickets",
+    name: "Tickets",
+    description: "Support ticket panels, claims, and transcripts.",
+    icon: "Ticket",
+    category: "community",
+    minPlan: "FREE",
+    commands: ["ticket setup", "ticket panel", "ticket stats", "ticket add-user", "ticket remove-user", "ticket transcript", "ticket close", "ticket claim"],
+    href: "/tickets",
+  },
+
+  /* ---------------------------- Voice Master ---------------------------- */
+  {
+    key: "voicemaster",
+    name: "Voice Master",
+    description: "Join-to-Create temporary voice channels and owner controls.",
+    icon: "Mic",
+    category: "voice",
+    minPlan: "FREE",
+    commands: ["vm setup", "vc rename", "vc lock", "vc unlock", "vc hide", "vc unhide", "vc limit", "vc bitrate", "vc region", "vc claim", "vc transfer", "vc kick"],
+    href: "/voicemaster",
+  },
+
+  /* ------------------------------ Community ----------------------------- */
   {
     key: "welcome",
     name: "Welcome",
@@ -154,16 +189,8 @@ export const MODULES: DashboardModule[] = [
     commands: ["g start", "g end", "g reroll", "g list", "g editprize", "g editwinners", "g reqrole", "g winrole", "g info"],
     href: "/giveaways",
   },
-  {
-    key: "tickets",
-    name: "Tickets",
-    description: "Support ticket panels, claims, and transcripts.",
-    icon: "Ticket",
-    category: "community",
-    minPlan: "FREE",
-    commands: ["ticket setup", "ticket panel", "ticket stats", "ticket add-user", "ticket remove-user", "ticket transcript", "ticket close", "ticket claim"],
-    href: "/tickets",
-  },
+
+  /* ----------------------------- Automation ----------------------------- */
   {
     key: "autoresponder",
     name: "Autoresponder",
@@ -195,84 +222,67 @@ export const MODULES: DashboardModule[] = [
     href: "/media",
   },
   {
-    key: "music",
-    name: "Music",
-    description: "Lavalink music player, queue, and controls.",
-    icon: "Music",
-    category: "music",
-    minPlan: "FREE",
-    commands: ["play", "pause", "resume", "skip", "stop", "queue", "shuffle", "loop", "volume", "seek", "nowplaying", "247", "join", "disconnect"],
-    href: "/music",
-  },
-  {
-    key: "lavalink",
-    name: "Lavalink",
-    description: "Node health and music diagnostics.",
-    icon: "Gauge",
-    category: "music",
-    minPlan: "FREE",
-    commands: [],
-    href: "/lavalink",
-  },
-  {
-    key: "voice",
-    name: "Voice",
-    description: "Voice channel management and voice roles.",
-    icon: "Mic",
-    category: "music",
-    minPlan: "FREE",
-    commands: ["vc mute", "vc move", "vc disconnect", "vc limit", "vc bitrate", "vc region", "vc rename", "vc role", "vm setup"],
-    href: "/voice",
-  },
-  {
     key: "logging",
     name: "Logging",
     description: "Event logging across your server.",
     icon: "ScrollText",
-    category: "utility",
+    category: "automation",
     minPlan: "FREE",
     commands: ["logging", "logging message", "logging member", "logging mod", "logging role", "logging channel", "logging server", "logging voice", "logging emoji", "logging webhook"],
     href: "/logging",
   },
-  {
-    key: "ai",
-    name: "AI",
-    description: "AI chatbot and image generation.",
-    icon: "Brain",
-    category: "utility",
-    minPlan: "PREMIUM",
-    commands: ["chatbot setup", "chatbot provider", "chatbot clear", "chatbot reset", "imagine"],
-    href: "/ai",
-  },
-  {
-    key: "general",
-    name: "General & Setup",
-    description: "AFK, polls, embeds, staff/VIP setup, and utilities.",
-    icon: "Settings2",
-    category: "utility",
-    minPlan: "FREE",
-    commands: ["afk", "poll", "embed", "setup", "staff", "vip", "guest", "membercount", "snipe"],
-    href: "/general",
-  },
-  {
-    key: "fun",
-    name: "Fun",
-    description: "Fun and social commands directory.",
-    icon: "Smile",
-    category: "utility",
-    minPlan: "FREE",
-    commands: ["slap", "hug", "kiss", "pat", "cry", "dance", "laugh", "ship", "iq", "cute", "fakeban", "fakekick"],
-    href: "/fun",
-  },
+
+  /* ------------------------------ Utilities ----------------------------- */
   {
     key: "utilities",
-    name: "Server Utilities",
-    description: "Info commands, ignore system, and banners.",
+    name: "Utilities",
+    description: "AFK, Snipe, info tools, embeds, polls, and reminders.",
     icon: "Wrench",
     category: "utility",
     minPlan: "FREE",
-    commands: ["serverinfo", "userinfo", "roleinfo", "channelinfo", "ping", "invite", "ignore", "unbanall", "banner"],
+    commands: [
+      "afk", "snipe", "editsnipe", "userinfo", "serverinfo", "avatar", "banner",
+      "roleinfo", "channelinfo", "membercount", "servericon", "firstmessage",
+      "remind", "poll", "embed", "timestamp", "say", "nick", "purge", "slowmode",
+      "lock", "unlock",
+    ],
     href: "/utilities",
+  },
+  {
+    key: "afk",
+    name: "AFK",
+    description: "Let members set an AFK status with mention responses.",
+    icon: "Moon",
+    category: "utility",
+    minPlan: "FREE",
+    commands: ["afk"],
+    href: "/utilities/afk",
+    hidden: true,
+    parent: "utilities",
+  },
+  {
+    key: "snipe",
+    name: "Snipe",
+    description: "View recently deleted and edited messages.",
+    icon: "Eye",
+    category: "utility",
+    minPlan: "FREE",
+    commands: ["snipe", "editsnipe"],
+    href: "/utilities/snipe",
+    hidden: true,
+    parent: "utilities",
+  },
+
+  /* ------------------------------- Settings ----------------------------- */
+  {
+    key: "setuproles",
+    name: "Setup Roles",
+    description: "Configure management roles: admin, staff, mod, VIP, and more.",
+    icon: "UserCog",
+    category: "settings",
+    minPlan: "FREE",
+    commands: ["setup", "staff", "vip", "guest"],
+    href: "/setup-roles",
   },
   {
     key: "roles",
@@ -322,14 +332,14 @@ export const MODULE_MAP: Record<string, DashboardModule> = Object.fromEntries(
 
 export const SIDEBAR_GROUPS: { label: string; categories: ModuleCategory[] }[] = [
   { label: "General", categories: ["overview"] },
-  { label: "Safety", categories: ["moderation", "security"] },
+  { label: "Moderation", categories: ["moderation"] },
   { label: "Community", categories: ["community"] },
+  { label: "Voice", categories: ["voice"] },
   { label: "Automation", categories: ["automation"] },
-  { label: "Voice & Music", categories: ["music"] },
-  { label: "Tools", categories: ["utility"] },
+  { label: "Utilities", categories: ["utility"] },
   { label: "Settings", categories: ["settings"] },
 ];
 
 export function modulesByCategory(cat: ModuleCategory): DashboardModule[] {
-  return MODULES.filter((m) => m.category === cat);
+  return MODULES.filter((m) => m.category === cat && !m.hidden);
 }

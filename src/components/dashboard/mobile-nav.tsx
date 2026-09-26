@@ -45,7 +45,8 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
             </div>
             <nav className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-3 py-2">
               {SIDEBAR_GROUPS.map((group) => {
-                const items = MODULES.filter((m) => group.categories.includes(m.category));
+                const items = MODULES.filter((m) => group.categories.includes(m.category) && !m.hidden);
+                if (items.length === 0) return null;
                 return (
                   <div key={group.label}>
                     <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">

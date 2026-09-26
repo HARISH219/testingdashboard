@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Users, Wifi, Crown, Gavel, Music, ShieldCheck, ArrowRight, Zap,
+  Users, Wifi, Crown, Gavel, Ticket, ShieldCheck, ArrowRight, Zap,
   Ban, VolumeX, AlertTriangle, UserPlus, Activity as ActivityIcon,
   Sliders, Bot,
 } from "lucide-react";
@@ -169,7 +169,7 @@ export default function OverviewPage() {
         <StatCard label="Live Sync" value={guild.botOnline ? "Online" : "Off"} icon={<ShieldCheck />} tint={guild.botOnline ? "text-success" : "text-muted-foreground"} delay={0.1} />
         <StatCard label="Premium Plan" value={plan.name} icon={<Crown />} tint="text-arctic" delay={0.15} />
         <StatCard label="Mod Actions" value="248" icon={<Gavel />} tint="text-ice" hint="last 30 days" delay={0.2} />
-        <StatCard label="Music" value="Playing" icon={<Music />} tint="text-arctic" delay={0.25} />
+        <StatCard label="Tickets" value="12" icon={<Ticket />} tint="text-arctic" hint="open" delay={0.25} />
       </div>
 
       {/* Main grid */}
@@ -254,10 +254,10 @@ export default function OverviewPage() {
           <CardContent className="grid grid-cols-2 gap-2">
             {[
               { label: "Moderation", href: "/moderation" },
-              { label: "Welcome", href: "/welcome" },
-              { label: "Music", href: "/music" },
-              { label: "Automod", href: "/automod" },
+              { label: "AutoMod", href: "/automod" },
               { label: "Tickets", href: "/tickets" },
+              { label: "Voice Master", href: "/voicemaster" },
+              { label: "Welcome", href: "/welcome" },
               { label: "Billing", href: "/billing" },
             ].map((q) => (
               <Button key={q.href} asChild variant="secondary" size="sm" className="justify-start">
@@ -287,7 +287,7 @@ export default function OverviewPage() {
           {[
             { label: "Servers", used: 1, total: plan.limits.maxServers === -1 ? "∞" : plan.limits.maxServers },
             { label: "Logging types", used: 4, total: plan.limits.logging === "advanced" ? "All" : 3 },
-            { label: "AI messages", used: plan.limits.aiChatbot ? 128 : 0, total: plan.limits.aiChatbot ? "5,000" : "—" },
+            { label: "Automod rules", used: plan.limits.automod === "advanced" ? 12 : 4, total: plan.limits.automod === "advanced" ? "All" : 4 },
           ].map((u) => (
             <div key={u.label} className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-4">
               <p className="text-xs text-muted-foreground">{u.label}</p>

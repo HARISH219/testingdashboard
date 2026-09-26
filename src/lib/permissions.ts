@@ -59,10 +59,10 @@ export const ROLE_PRESETS: { key: string; name: string; description: string; per
     ],
   },
   {
-    key: "music_manager",
-    name: "Music Manager",
-    description: "Music player and voice settings.",
-    permissions: ["music:manage", "voice:manage"],
+    key: "voice_manager",
+    name: "Voice Manager",
+    description: "Voice Master and voice channel settings.",
+    permissions: ["voicemaster:manage"],
   },
   {
     key: "moderator",

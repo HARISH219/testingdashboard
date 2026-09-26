@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe, HAS_STRIPE } from "@/lib/stripe";
 import { env, HAS_DATABASE } from "@/lib/env";
 import { prisma } from "@/lib/db";
+import { notifyPremiumActivated } from "@/lib/premium-notify";
 import type Stripe from "stripe";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,19 @@ export async function POST(req: NextRequest) {
               stripeSubscriptionId: session.subscription as string,
             },
             update: { tier, status: "ACTIVE", stripeSubscriptionId: session.subscription as string },
+          });
+
+          // Notify the internal Soward channel — only after verified activation.
+          // Keyed on the Stripe event id so it can never fire twice.
+          const guildRow = await prisma.guild.findUnique({ where: { id: guildId } });
+          await notifyPremiumActivated({
+            eventId: event.id,
+            guildId,
+            guildName: guildRow?.name ?? guildId,
+            tier,
+            interval: "monthly",
+            activatedByTag: user.username,
+            activatedById: userId,
           });
         }
         break;

@@ -2,24 +2,24 @@
 
 import { motion } from "framer-motion";
 import {
-  ShieldCheck, Lock, Music, Bot, DoorOpen, Gift, Ticket, UserPlus,
-  Brain, ScrollText, Activity, Wrench,
+  ShieldCheck, Lock, Mic, Bot, DoorOpen, Gift, Ticket, UserPlus,
+  Moon, ScrollText, Eye, Wrench,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const features = [
   { icon: ShieldCheck, title: "Advanced Moderation", desc: "Warn, ban, kick, mute, purge, lock, and full mod history." },
   { icon: Lock, title: "Antinuke Security", desc: "Protect your server with whitelists and extra owners." },
-  { icon: Music, title: "Music & Lavalink", desc: "High quality playback with queue, loop, and 24/7 mode." },
-  { icon: Bot, title: "Automod", desc: "Automatic filtering, raid mode, and smart punishments." },
+  { icon: Bot, title: "Advanced AutoMod", desc: "Anti-spam, anti-link, raid protection, and smart punishments." },
+  { icon: Ticket, title: "Tickets", desc: "Panel builder, claims, and full transcripts." },
+  { icon: Mic, title: "Voice Master", desc: "Join-to-Create temporary voice channels with owner controls." },
   { icon: DoorOpen, title: "Welcome & Goodbye", desc: "Beautiful embeds, auto roles, and join DMs." },
   { icon: Gift, title: "Giveaways", desc: "Create, manage, and reroll giveaways in seconds." },
-  { icon: Ticket, title: "Tickets", desc: "Support panels, claims, and transcripts." },
   { icon: UserPlus, title: "Self Roles", desc: "Reaction and button self-assignable roles." },
-  { icon: Brain, title: "AI Chatbot", desc: "Conversational AI and image generation." },
+  { icon: Moon, title: "AFK System", desc: "Automatic AFK status and mention responses." },
+  { icon: Eye, title: "Snipe", desc: "View recently deleted and edited messages." },
   { icon: ScrollText, title: "Logging", desc: "Track every event across your server." },
-  { icon: Activity, title: "Activity Roles", desc: "Reward active members automatically." },
-  { icon: Wrench, title: "Server Utilities", desc: "Info commands, ignore system, and more." },
+  { icon: Wrench, title: "Server Utilities", desc: "Info commands, embeds, polls, reminders, and more." },
 ];
 
 export function FeatureGrid() {

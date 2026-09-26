@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, ShieldCheck, Music, Activity } from "lucide-react";
+import { Users, ShieldCheck, Ticket, Activity } from "lucide-react";
 
 /** A stylized, static preview of the dashboard for the hero section. */
 export function DashboardPreview() {
@@ -30,7 +30,7 @@ export function DashboardPreview() {
               { icon: Users, label: "Members", value: "1,284", tint: "text-arctic" },
               { icon: ShieldCheck, label: "Bot Status", value: "Online", tint: "text-success" },
               { icon: Activity, label: "Mod Actions", value: "248", tint: "text-ice" },
-              { icon: Music, label: "Music", value: "Playing", tint: "text-arctic" },
+              { icon: Ticket, label: "Tickets", value: "12", tint: "text-arctic" },
             ].map((s) => (
               <div key={s.label} className="glass rounded-xl p-2.5 sm:p-3">
                 <s.icon className={`mb-1.5 size-4 sm:mb-2 ${s.tint}`} />

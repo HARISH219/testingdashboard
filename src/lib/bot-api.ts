@@ -44,12 +44,23 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<BotApiResu
 
 export const botApi = {
   getStatus: (guildId: string) => call<{ online: boolean; latencyMs: number }>(`/guilds/${guildId}/status`),
-  getMusicState: (guildId: string) => call<any>(`/guilds/${guildId}/music`),
-  musicControl: (guildId: string, action: string, payload?: unknown) =>
-    call(`/guilds/${guildId}/music/${action}`, { method: "POST", body: JSON.stringify(payload ?? {}) }),
-  getLavalink: () => call<any>(`/lavalink/status`),
   runModAction: (guildId: string, payload: unknown) =>
     call(`/guilds/${guildId}/moderation`, { method: "POST", body: JSON.stringify(payload) }),
   syncConfig: (guildId: string, module: string, data: unknown) =>
     call(`/guilds/${guildId}/config/${module}`, { method: "PUT", body: JSON.stringify(data) }),
+  /**
+   * Ask the bot to send a message/embed to a channel. Used for actions the
+   * dashboard cannot perform itself (it has no gateway and never holds the bot
+   * token). Returns the created message id when the bot service is configured.
+   */
+  sendMessage: (
+    guildId: string,
+    payload: { channelId: string; content?: string; embed?: unknown; components?: unknown }
+  ) => call<{ messageId: string; channelId: string }>(`/guilds/${guildId}/messages`, { method: "POST", body: JSON.stringify(payload) }),
+  /**
+   * Send a notification embed to a fixed internal Soward channel (e.g. premium
+   * purchase alerts). The bot resolves the channel by id server-side.
+   */
+  sendInternalNotification: (payload: { channelId: string; embed: unknown }) =>
+    call<{ messageId: string }>(`/internal/notify`, { method: "POST", body: JSON.stringify(payload) }),
 };
