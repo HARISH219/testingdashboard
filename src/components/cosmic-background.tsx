@@ -120,7 +120,7 @@ export function CosmicBackground() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {/* Nebula glows + soft orbs */}
       <div
         className="absolute inset-0"

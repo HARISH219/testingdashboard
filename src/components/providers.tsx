@@ -7,10 +7,13 @@ import { CosmicBackground } from "@/components/cosmic-background";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      {/* One global cosmic background for every route. Mounted here (outside the
-          page tree) so it persists across navigation and never reloads/jumps. */}
+      {/* Global cosmic background — fixed BEHIND everything, never clickable. */}
       <CosmicBackground />
-      <ToastProvider>{children}</ToastProvider>
+      {/* All app content sits in a positioned layer above the background so it
+          is always interactive regardless of the background's stacking. */}
+      <div className="relative z-10">
+        <ToastProvider>{children}</ToastProvider>
+      </div>
     </SessionProvider>
   );
 }
