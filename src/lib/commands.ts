@@ -307,6 +307,7 @@ const CATEGORY_MAP: Record<ModuleCategory, CommandCategory> = {
   automation: "Automation",
   community: "Community",
   voice: "Music",
+  server: "Server",
   utility: "Utility",
   settings: "Owner",
 };

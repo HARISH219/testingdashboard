@@ -86,6 +86,13 @@
   * {
     @apply border-border;
   }
+  /* Accessible keyboard focus: a visible arctic ring on any focused control,
+   * shown only for keyboard navigation (not mouse clicks). */
+  :focus-visible {
+    outline: 2px solid hsl(var(--arctic));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
   html {
     scroll-behavior: smooth;
     /* Never allow sideways scrolling on phones. */

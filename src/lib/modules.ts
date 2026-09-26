@@ -17,6 +17,7 @@ export type ModuleCategory =
   | "community"
   | "automation"
   | "voice"
+  | "server"
   | "utility"
   | "settings";
 
@@ -273,7 +274,49 @@ export const MODULES: DashboardModule[] = [
     parent: "utilities",
   },
 
+  /* -------------------------- Server management ------------------------- */
+  {
+    key: "members",
+    name: "Members",
+    description: "Browse members, roles, and join dates.",
+    icon: "Users",
+    category: "server",
+    minPlan: "FREE",
+    commands: ["members", "userinfo", "membercount"],
+    href: "/members",
+  },
+  {
+    key: "channels",
+    name: "Channels",
+    description: "View and manage the server's channels.",
+    icon: "Hash",
+    category: "server",
+    minPlan: "FREE",
+    commands: ["channelinfo", "slowmode", "lock", "unlock"],
+    href: "/channels",
+  },
+  {
+    key: "analytics",
+    name: "Analytics",
+    description: "Message, member, and activity trends.",
+    icon: "BarChart3",
+    category: "server",
+    minPlan: "FREE",
+    commands: [],
+    href: "/analytics",
+  },
+
   /* ------------------------------- Settings ----------------------------- */
+  {
+    key: "custombot",
+    name: "Custom Bot",
+    description: "Customize the bot avatar, banner, and profile.",
+    icon: "BotMessageSquare",
+    category: "settings",
+    minPlan: "FREE",
+    commands: [],
+    href: "/custom-bot",
+  },
   {
     key: "setuproles",
     name: "Setup Roles",
@@ -332,12 +375,12 @@ export const MODULE_MAP: Record<string, DashboardModule> = Object.fromEntries(
 
 export const SIDEBAR_GROUPS: { label: string; categories: ModuleCategory[] }[] = [
   { label: "General", categories: ["overview"] },
+  { label: "Management", categories: ["settings", "server"] },
   { label: "Moderation", categories: ["moderation"] },
   { label: "Community", categories: ["community"] },
   { label: "Voice", categories: ["voice"] },
   { label: "Automation", categories: ["automation"] },
   { label: "Utilities", categories: ["utility"] },
-  { label: "Settings", categories: ["settings"] },
 ];
 
 export function modulesByCategory(cat: ModuleCategory): DashboardModule[] {

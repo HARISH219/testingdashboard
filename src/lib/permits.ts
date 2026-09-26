@@ -82,6 +82,7 @@ const CATEGORY_MAP: Record<ModuleCategory, { category: PermissionCategory; icon:
   community: { category: "Community", icon: "Users" },
   automation: { category: "Automation", icon: "Zap" },
   voice: { category: "Voice & Music", icon: "Mic" },
+  server: { category: "Settings", icon: "Users" },
   utility: { category: "Utility", icon: "Wrench" },
   settings: { category: "Settings", icon: "Sliders" },
 };

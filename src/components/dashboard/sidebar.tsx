@@ -10,8 +10,7 @@ import { ModuleIcon } from "./module-icon";
 import { useGuild, useCan } from "./guild-context";
 import { MODULES, SIDEBAR_GROUPS, type DashboardModule } from "@/lib/modules";
 import { planMeets } from "@/lib/plans";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { cn, guildIconUrl, formatNumber } from "@/lib/utils";
 
 export function Sidebar({
   collapsed,
@@ -24,6 +23,7 @@ export function Sidebar({
   const can = useCan();
   const pathname = usePathname();
   const base = `/dashboard/${guild.id}`;
+  const guildIcon = guildIconUrl(guild.id, guild.icon, 64);
 
   const isActive = (m: DashboardModule) => {
     const href = base + m.href;
@@ -143,13 +143,32 @@ export function Sidebar({
         })}
       </nav>
 
-      {!collapsed && (
-        <div className="border-t border-white/[0.06] p-3">
-          <Badge variant={guild.tier === "FREE" ? "secondary" : "default"} className="w-full justify-center py-1">
-            {guild.tier} plan
-          </Badge>
-        </div>
-      )}
+      {/* Current server card */}
+      <div className="border-t border-white/[0.06] p-3">
+        <Link
+          href="/servers"
+          className={cn(
+            "flex items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.03] p-2 transition-colors hover:bg-white/[0.06]",
+            collapsed && "justify-center"
+          )}
+          title={collapsed ? `${guild.name} — ${guild.memberCount} members` : undefined}
+        >
+          {guildIcon ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={guildIcon} alt="" className="size-9 shrink-0 rounded-full object-cover" />
+          ) : (
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-arctic/15 text-xs font-bold text-arctic">
+              {guild.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-snow">{guild.name}</p>
+              <p className="text-xs text-muted-foreground">{formatNumber(guild.memberCount)} Members</p>
+            </div>
+          )}
+        </Link>
+      </div>
     </aside>
   );
 }

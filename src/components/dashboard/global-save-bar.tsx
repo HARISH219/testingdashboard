@@ -23,8 +23,7 @@ export function GlobalSaveBar() {
       {dirty && (
         // Wrapper: fixed, bottom-only, centered, click-through.
         <div
-          className="pointer-events-none fixed inset-x-0 z-50 flex justify-center px-3"
-          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+          className="pointer-events-none fixed inset-x-0 z-50 flex justify-center px-3 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] md:bottom-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]"
         >
           <motion.div
             initial={{ opacity: 0, y: 24 }}
